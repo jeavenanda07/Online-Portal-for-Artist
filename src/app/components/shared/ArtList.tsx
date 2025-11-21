@@ -12,8 +12,8 @@ type ArtItem = {
 
 export default function ArtList({art, children,}: { art: ArtItem; children?: React.ReactNode;}) {   
   return (
-    <div className="w-full overflow-hidden text-sm">
-      <div className="art-list-card relative h-55 lg:h-55 hover:shadow-xl transition duration-700 ease-in-out  xl:h-65 mb-4 overflow-hidden  cursor-pointer group">
+    <div className="w-full overflow-hidden text-sm  max-w-80 h-80 max-h-80">
+      <div className="art-list-card relative hover:shadow-xl transition duration-700 ease-in-out mb-4 overflow-hidden h-[80%] cursor-pointer group w-full">
         {art?.src ? (
             <Image
                 src={art?.avatar}

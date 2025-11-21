@@ -27,7 +27,7 @@ export default function Header() {
 
   console.log(isLogin);
   return (
-    <header className="z-20 bg-background border-1 sticky top-0 h-20 left-0 w-full border-b-primary-line flex justify-between items-center mb-10 px-5 md:px-10 lg:px-20">
+    <header className="z-20 bg-background sticky top-0 h-20 left-0 w-full border-b-primary-line flex justify-between items-center mb-10 px-5 md:px-10 lg:px-20">
       <div className="flex gap-8 items-center">
           <Logo/>
 

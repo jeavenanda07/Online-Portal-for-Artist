@@ -188,9 +188,9 @@ const artListObj = [
 
 const ExploreLayout = () => {
   return (
-    <div className="flex flex-col gap-4 relative">
-      {/* <h3 className="text-lg font-bold">Explore Arts</h3> */}
-      <div className="w-full bg-background z-10 pt-10 pb-3 border-b-1 border-primary-line">
+    <div className="flex flex-col gap-4 relative px-4">
+      {/* <h3 className="text-lg font-bold mt-4">Explore Arts</h3> */}
+      <div className="w-[full] bg-background z-10 pt-10 pb-3 border-b-1 border-primary-line">
           <div className="flex gap-4 items-center space-between">
             <div className="bg-secondary flex items-center border-1 border-primary-line justify-center gap-2 py-3 px-8 cursor-pointer rounded-full">
                 <FilterIcon />
@@ -212,7 +212,7 @@ const ExploreLayout = () => {
       </div>
      
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 3xl:grid-cols-6 gap-x-8 gap-y-14 mt-4 cursor-pointer">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 cursor-pointer w-full justify-between">
         {artListObj.map((art) => (
           <ArtList art={art} key={art.id} />
         ))}
