@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +19,7 @@ import Logo from "../ui/Logo";
 import { getSession, deleteSession } from "@/app/actions/auth";
 import { setData } from "@/utils/storage";
 import { notify } from "@/utils/toastHelper";
+import { useUser } from "@/hooks/useUser";
 
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
@@ -30,18 +31,18 @@ export const nav_links = [
 export default function Header() {
   const [session, setSession] = useState<any>(null);
   const [isLogin, setIsLogin] = useState(false);
-  const [loading, setLoading] = useState(true); 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [notificationDropdown, setNotificationDropdown] = useState(false);
-  const router = useRouter();
+  const { userData, loading } = useUser();
 
+  const router = useRouter();
   const mobileMenu = usePopup();
   const profileMenu = usePopup();
 
   const handleLogOut = async () => {
     try {
       await deleteSession();
-      setData("token", false); // Clear your local storage token
+      setData("token", false); 
       setIsLogin(false);
       setSession(null);
       profileMenu.close();
@@ -55,25 +56,6 @@ export default function Header() {
   const handleCloseChat = () => {
     setIsChatOpen(false);
   };
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const data = await getSession();
-        if (data) {
-          setSession(data);
-          setIsLogin(true);
-        } else {
-          setIsLogin(false);
-        }
-      } catch (error) {
-        console.error("Session check failed:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkSession();
-  }, []);
 
   return (
     <header className="fixed top-0 left-0 w-full h-20 z-[100] border-b border-white/5 bg-primary/80 backdrop-blur-xl px-6 lg:px-12 flex items-center justify-between">
@@ -101,7 +83,7 @@ export default function Header() {
       <div className="flex items-center gap-4">
         {!loading && (
           <>
-            {isLogin ? (
+            {userData ? (
               <>
                 <div className="hidden md:flex items-center gap-2 mr-4">
                   <button 
@@ -130,7 +112,7 @@ export default function Header() {
                     className="relative group p-1 rounded-full border-2 border-transparent hover:border-green-400 transition-all"
                   >
                     <Image
-                      src="https://i.pinimg.com/736x/76/84/b7/7684b7cbf34ac441c6f377f359fb6868.jpg"
+                      src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
                       alt="profile"
                       width={40}
                       height={40}
