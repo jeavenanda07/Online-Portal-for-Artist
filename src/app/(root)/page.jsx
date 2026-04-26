@@ -3,17 +3,14 @@ import HomepageAfter from "../components/ui/HomepageAfter";
 import { getSession } from "@/app/actions/auth";
 
 const Page = async () => {
-  // Fetch the session data from the server
   const session = await getSession();
   console.log("Session in Page Component:", session);
 
   return (
-    <main>
+    <main className="mt-10">
       {session ? (
-        /* If session exists, show the logged-in homepage */
         <HomepageAfter />
       ) : (
-        /* If no session, show the guest homepage */
         <HomepageBefore />
       )}
     </main>
