@@ -1,26 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "ignoreDeprecations": "6.0",
+    "target": "ES2023",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
-  
     ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "types": [
-      "./declarations.d.ts"
-    ],
     "plugins": [
       {
         "name": "next"
@@ -34,11 +31,16 @@
   },
   "include": [
     "next-env.d.ts",
+    "declarations.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "src/app/(root)/page.jsx",
+    "src/app/(root)/profile/[id]/gallery/page.jsx",
+    "src/app/components/profile/CreatePost.jsx",
+    "src/app/components/ui/IKImage.jsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-, "src/app/(root)/page.jsx", "src/app/(root)/profile/[id]/gallery/page.jsx", "src/app/components/profile/CreatePost.jsx", "src/app/components/ui/IKImage.jsx"  ],
+  ],
   "exclude": [
     "node_modules"
   ]
