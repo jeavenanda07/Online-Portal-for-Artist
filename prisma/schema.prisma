@@ -2,34 +2,75 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
-// npx 
 
-
-// Tells Prisma which client to generate (usually prisma-client-js)
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "../generated/prisma"
 }
 
-// Tells Prisma which database to use
 datasource db {
   provider = "postgresql"
 }
 
+model Credentials {
+  user_id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gmail          String   @unique
+  password       String
+  created_at     DateTime @default(now())
+  is_logged_in     Boolean  @default(false)
+  last_signin_at DateTime @updatedAt
+  role           String   @default("User")
+  is_remembered  Boolean  @default(false)
 
-// Defines your tables (SQL) or collections (MongoDB).
-model User { 
-  id    Int     @id @default(autoincrement()) 
-  email String  @unique
-  name  String?
-  posts Post[]
-} 
+  user_profile UserProfile?
+}
 
-model Post { 
-  id        Int     @id @default(autoincrement()) 
-  title     String
-  content   String?
-  published Boolean @default(false) 
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id]) 
-} 
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+model UserProfile {
+  user_profile_id  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Foreign Key linking to Credentials
+  credentials_id   String    @unique @db.Uuid
+  credentials      Credentials @relation(fields: [credentials_id], references: [user_id], onDelete: Cascade)
+
+  full_name        String
+  username         String    @unique
+  avatar_pic       String?   // Optional URL
+  background_cover String?   // Optional URL
+  specialization   String?   // e.g., "Digital Illustrator"
+  gender           Gender    @default(PREFER_NOT_TO_SAY)
+  is_open_for_hire Boolean   @default(false)
+  birthdate        DateTime?
+  contact          String?
+  about_me         String?   @db.Text
+  social_links     Json?     // Stores an object of links (FB, IG, etc.)
+  display_location String?   // e.g., "Atimonan, Quezon"
+
+  updated_at       DateTime  @updatedAt
+  posts            Post[]
+}
+
+enum Visibility {
+  public
+  followers
+  private
+}
+
+model Post {
+  post_id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_profile_id String     @db.Uuid
+  content         String     @db.VarChar(500)
+  media           String[]   // Array of image URLs
+  visibility      Visibility @default(public)
+  date_posted     DateTime   @default(now())
+  last_updated    DateTime   @updatedAt
+
+  author          UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+}

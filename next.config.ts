@@ -49,6 +49,26 @@ const nextConfig: NextConfig = {
       // CatCon
       "www.catconworldwide.com",
     ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // This is the specific host for Google profile photos
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com', // Added this since you're using it as a fallback
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ik.imagekit.io', // ✅ Add ImageKit here
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 };
 

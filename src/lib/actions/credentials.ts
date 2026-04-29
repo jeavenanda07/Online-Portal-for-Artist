@@ -8,7 +8,7 @@ export async function getCredentials() {
 
     const { data: Credentials, error } = await supabase
         .from("Credentials")
-        .select("id, gmail, Role"); // Use the actual column names from your DB
+        .select("user_id, gmail, Role"); // Use the actual column names from your DB
     
     if (error) {
         console.error(error);
