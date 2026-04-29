@@ -19,7 +19,7 @@ import Logo from "../ui/Logo";
 import { getSession, deleteSession } from "@/app/actions/auth";
 import { setData } from "@/utils/storage";
 import { notify } from "@/utils/toastHelper";
-import { useUser } from "@/hooks/useUser";
+// import { useUser } from "@/hooks/useUser";
 
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
@@ -33,7 +33,7 @@ export default function Header() {
   const [isLogin, setIsLogin] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [notificationDropdown, setNotificationDropdown] = useState(false);
-  const { userData, loading } = useUser();
+  // const { userData, loading } = useUser();
 
   const router = useRouter();
   const mobileMenu = usePopup();
@@ -81,9 +81,9 @@ export default function Header() {
 
       {/* --- RIGHT: ACTIONS --- */}
       <div className="flex items-center gap-4">
-        {!loading && (
+        {!isLogin && (
           <>
-            {userData ? (
+            {isLogin ? (
               <>
                 <div className="hidden md:flex items-center gap-2 mr-4">
                   <button 
@@ -112,7 +112,8 @@ export default function Header() {
                     className="relative group p-1 rounded-full border-2 border-transparent hover:border-green-400 transition-all"
                   >
                     <Image
-                      src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
+                      // src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
+                      src={"/avatar_placeholder.png"}
                       alt="profile"
                       width={40}
                       height={40}

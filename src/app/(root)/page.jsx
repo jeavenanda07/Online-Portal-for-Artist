@@ -1,11 +1,10 @@
 import HomepageBefore from "@/app/components/ui/HomepageBefore";
 import HomepageAfter from "../components/ui/HomepageAfter";
-import { getSession } from "@/app/actions/auth";
+import {supabase} from "@/lib/supabaseClient";
+
+
 
 const Page = async () => {
-  const session = await getSession();
-  console.log("Session in Page Component:", session);
-
   return (
     <main className="mt-10">
       {session ? (

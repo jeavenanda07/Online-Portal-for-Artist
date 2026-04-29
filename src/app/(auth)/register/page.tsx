@@ -47,7 +47,7 @@ export default function RegisterPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}`, 
+        redirectTo: `${window.location.origin}/register/profile-setup`, 
       },
     });
 
@@ -66,6 +66,11 @@ export default function RegisterPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // This ensures that after they click the email link, 
+        // they eventually land back where you want them.
+        emailRedirectTo: `${window.location.origin}/register/profile-setup`,
+      }
     });
   
     if (error) {
@@ -74,11 +79,13 @@ export default function RegisterPage() {
     } else {
       console.log("Supabase Response Data:", data);
       
+      // Check if the user already exists
       if (data.user?.identities?.length === 0) {
         notify("This email is already registered! Try logging in instead.", "error");
-      } else {
-        notify("Check your email for the confirmation link!", "success");
-        router.push("/login");
+      } else if (data.user) {
+        // ✅ SUCCESS CONDITION: New user created
+        notify("Account created! Please check your email to confirm.", "success");
+        router.push("/register/profile-setup");
       }
     }
     setIsPending(false);
@@ -126,7 +133,7 @@ export default function RegisterPage() {
               className="border border-cyan-500 p-5 text-black rounded-xl flex items-center justify-center gap-3 hover:bg-zinc-50 transition-all"
             >
               <FcGoogle className="text-xl" />
-              <p>Continue with Google</p>
+              <p>Sign up with Google</p>
             </button>
 
             <div className="flex items-center my-2">
