@@ -2,6 +2,7 @@
   "name": "portal-for-artist",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -14,8 +15,13 @@
     "@imagekit/next": "^2.1.5",
     "@mui/material": "^7.3.5",
     "@mui/x-date-pickers": "^8.18.0",
+<<<<<<< HEAD
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
+=======
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+>>>>>>> ecf4eec3ae7b58b8c47dba243bed9357a4e427fb
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "@tailwindcss/vite": "^4.1.14",
@@ -24,7 +30,7 @@
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.23.24",
     "gsap": "^3.14.2",
     "lucide-react": "^0.554.0",
@@ -47,7 +53,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/pg": "^8.18.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
@@ -55,9 +61,11 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "postcss": "^8.5.6",
-    "prisma": "^7.5.0",
+    "prisma": "^7.8.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
+
+

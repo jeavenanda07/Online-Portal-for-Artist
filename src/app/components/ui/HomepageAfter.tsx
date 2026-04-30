@@ -1,8 +1,10 @@
-import React from "react";
+"use client";
 import { ChevronRight, Heart, MessageCircle, Share2, Plus } from "lucide-react";
 import FeaturedArts from "@/app/components/ui/FeaturedArts";
 import Link from "next/link";
 import FeauturedArt from "../home/FeauturedArt";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 const ModernHomepage = () => {
   const recentlyLiked = [
@@ -159,6 +161,18 @@ const ModernHomepage = () => {
     },
   ];
 
+    useEffect(() => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          const user = session.user;
+          console.log("Full User Object:", user);
+          console.log("User Gmail:", user.email);
+          console.log("User Metadata (Name/Avatar):", user.user_metadata);
+        }
+      });
+    
+      return () => subscription.unsubscribe();
+    }, []);
   return (
     <main className="min-h-screen w-full  selection:bg-[#00d26a] selection:text-black overflow-x-hidden">
       {/* 1. IMMERSIVE HERO SECTION (70dvh) */}

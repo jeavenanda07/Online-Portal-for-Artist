@@ -12,6 +12,7 @@ import {
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getSession } from "@/app/actions/auth";
 import { setTheme as setCookieTheme } from "@/app/actions/theme";
+// import {useUser} from "@/hooks/useUser";
 
 interface ProfileMenuProps {
   handleLogOut: () => void;
@@ -21,6 +22,7 @@ type Theme = "light" | "dark";
 
 const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
   const [session, setSession] = useState<{ email: string; Role: string } | null>(null);
+  // const { userData, loading } = useUser();
   const { value: theme, setValue: setLocalTheme } = useLocalStorage<Theme>("theme", "dark");
 
   useEffect(() => {
@@ -31,18 +33,17 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     fetchSession();
   }, []);
 
-  // Synchronize CSS class with current theme state
+
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);
 
-  // Combined toggle: Updates LocalStorage, CSS Class, and Server Cookie
+
   const handleThemeChange = async (newTheme: Theme) => {
     setLocalTheme(newTheme);
     await setCookieTheme(newTheme);
-    // Note: MutationObserver in Logo component will handle the logo swap automatically
   };
 
   return (
@@ -57,7 +58,8 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
                 <Image
                   width={80}
                   height={80}
-                  src="https://i.pinimg.com/1200x/95/cf/0b/95cf0b0894ac9afdb1ebc3c486a2b0ca.jpg"
+                  // src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
+                  src={"/avatar_placeholder.png"}
                   alt="user profile"
                   className="h-20 w-20 rounded-full bg-primary object-cover border-2 border-black"
                 />
@@ -66,10 +68,11 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
           </div>
 
           <h1 className="text-xl font-heading italic uppercase tracking-tighter">
-            {session?.email.split('@')[0] || "Artist"}
+            {/* {userData?.full_name || "Artist Name"} */}
+            {"Artist Name"}
           </h1>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-            {session?.email || "fetching account..."}
+            {/* {userData?.email || ""} */}
           </p>
           {session?.Role && (
             <span className="mt-2 text-[9px] font-black text-green-400 border border-green-400/20 px-2 py-0.5 rounded-full uppercase">

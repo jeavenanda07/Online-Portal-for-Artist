@@ -23,6 +23,7 @@ export async function createSession(user: { email: string; role: string }) {
 /**
  * READ: Retrieves and parses the session cookie
  */
+
 export async function getSession() {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
