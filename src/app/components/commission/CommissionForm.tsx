@@ -19,16 +19,15 @@ const nav = [
 
 interface Props {
   func: (value: boolean) => void;
-  userId: string;
+  username: string | undefined;
 }
 
-const CommissionForm = ({ func, userId }: Props) => {
+const CommissionForm = ({ func, username }: Props) => {
   const [step, setStep] = useState(1);
-
-  // Step data
   const [images, setImages] = useState<{ file: File; url: string }[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
+  
 
   const [formData, setFormData] = useState({
     title: "",
@@ -65,7 +64,7 @@ const CommissionForm = ({ func, userId }: Props) => {
       tags,
       images,
       commissionTo: getUserProfile(userId),
-      commissionFrom: getOwnerProfile(),
+      commissionFrom: username ?,
       createdAt: new Date().toLocaleString(),
     };
 

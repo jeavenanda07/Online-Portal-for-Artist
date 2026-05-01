@@ -1,33 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { notify } from "@/utils/toastHelper";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    console.log("Received Profile Data:", data);
-
-    if (!data.credentials_id) {
-      return NextResponse.json(
-        { error: "Credentials ID is required." },
-        { status: 400 }
-      );
-    }
-
-    const existingProfile = await prisma.userProfile.findUnique({
-      where: {
-        credentials_id: data.credentials_id,
-      },
-    });
-
-    if (existingProfile) {
-      return NextResponse.json(
-        { message: "Profile already exists. Redirecting to login...", redirect: "/login" },
-        { status: 409 } 
-      );
-    }
-
-    
     const profile = await prisma.userProfile.create({
       data: {
         credentials_id: data.credentials_id,
@@ -35,16 +13,15 @@ export async function POST(req: Request) {
         username: data.username,
         gender: data.gender,
         birthdate: data.birthdate ? new Date(data.birthdate) : null,
+        // Fixed: changed data.avatar_url to data.avatar_pic
         avatar_pic: data.avatar_pic || null, 
       },
     });
 
+    notify("Profile created successfully", "success");
     return NextResponse.json(profile);
   } catch (error) {
     console.error("Profile Error:", error);
-    return NextResponse.json(
-      { error: "Failed to create profile. Username may already exist." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Username already exists" }, { status: 400 });
   }
 }
