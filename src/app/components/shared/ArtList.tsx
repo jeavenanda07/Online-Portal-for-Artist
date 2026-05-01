@@ -3,15 +3,21 @@ import {artwork, UserProfile} from "@/types/User"
 import { FaRegHeart } from "react-icons/fa";
 import { LiaCommentDotsSolid } from "react-icons/lia";
 import { IoCartOutline } from "react-icons/io5";
-import user from "@/data/user_profile.json"
+import { getSession } from "@/app/actions/auth";
+import {prisma} from "@/lib/prisma"
 
-const userProfile = user as UserProfile[]
+export default async function ArtList({ art }: { art: artwork }) {
+  const getSessionData = await getSession();
+  console.log("Session Data in ExploreLayout:", getSessionData);
 
-export default function ArtList({ art }: { art: artwork }) {
-  const user = userProfile.find(
-    (u) => u.id === art.user_profile_id
-  );
-  
+  const userProfile = await prisma.userProfile.findUnique({
+    where: {
+      username: getSessionData.username,
+    },
+  });
+
+  console.log("User Profile Data in ArtList:", userProfile);
+
   return (
     <div className="mb-4 w-full break-inside-avoid relative">
       <div className="art-item-wrapper rounded-md overflow-hidden relative group ">
@@ -31,12 +37,12 @@ export default function ArtList({ art }: { art: artwork }) {
             <Image
               width={150}
               height={150}
-              src={user?.profile_picture || ""}
+              src={userProfile?.avatar_pic || ""}
               alt={art?.artist_avatar}
               className="h-6 w-6 object-cover rounded-full"
             />
 
-            <p className="text-xs ">{`${user?.first_name} ${user?.last_name}`}</p>
+            <p className="text-xs ">{`${userProfile?.full_name}`}</p>
           </div>
 
         <section className="flex justify-between text-xs">
