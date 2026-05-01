@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient"; // Adjust path if needed
 /**
  * CREATE: Sets the initial session cookie
  */
-export async function createSession(user: { email: string; role: string }) {
+export async function createSession(user: { email: string; username?: string; role: string }) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
   const sessionData = JSON.stringify(user);
 
@@ -80,6 +80,7 @@ export async function loginAction(formData: FormData) {
   // 2. Set your custom session cookie on success
   await createSession({
     email: data.user.email!,
+    username: data.user.user_metadata?.full_name ? `@${data.user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
     role: data.user.app_metadata?.role || "user", // Or whatever custom metadata you track
   });
 

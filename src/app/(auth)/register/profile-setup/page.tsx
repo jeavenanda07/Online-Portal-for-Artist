@@ -24,6 +24,7 @@ const ProfileSetup = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
+      console.log("Checking user session:", user);
       if (!user || !user.email) {
         notify("Session expired", "error");
         router.push("/login");
@@ -35,11 +36,20 @@ const ProfileSetup = () => {
         const data = await res.json();
   
         if (data.exists) {
-          notify("Account already exists. Please login instead.", "error");
-  
+          await createSession({
+            email: user.email || "",
+            username: user.user_metadata?.full_name ? `@${user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
+            role: "User",
+          });
+
+
+          router.push("/");
+    
           setTimeout(() => {
-            router.push("/login");
+            notify("Welcome back", "success");
           }, 1500);
+
+
         } else {
           notify("Please complete your profile setup", "info");
           setLoading(false);
@@ -92,9 +102,11 @@ const ProfileSetup = () => {
       }),
     });
 
+    console.log("Profile creation response:", response);
     if (response.ok) {
       await createSession({
         email: user.email || "",
+        username: formData.username,
         role: "User",
       });
 

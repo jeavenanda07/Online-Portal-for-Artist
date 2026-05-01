@@ -79,8 +79,6 @@ export default function Header() {
     fetchSessionAndProfile();
   }, []);
 
-  console.log("Session in Header:", session);
-  console.log("User Data in Header:", userData?.avatar_pic);
 
   return (
     <header className="fixed top-0 left-0 w-full h-20 z-[100] border-b border-white/5 bg-primary/80 backdrop-blur-xl px-6 lg:px-12 flex items-center justify-between">

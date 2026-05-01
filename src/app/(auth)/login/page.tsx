@@ -55,9 +55,10 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}`, 
+        redirectTo: `${window.location.origin}/register/profile-setup`, 
       },
     });
+
     if (error) {
       notify(error.message, "error");
     }
@@ -84,13 +85,15 @@ export default function LoginPage() {
       }
 
       const role = authUser.role.toLowerCase();
+      const getSessionData = await getSession(); // Get current session data
+      console.log("Current Session Data:", getSessionData); // Log session data for debugging
 
       if (role === "admin") {
-        await createSession({ email: authUser.email, role: "Admin" });
+        await createSession({ email: authUser.email,  role: "Admin" });
         notify("Welcome back, Administrator", "success");
         router.push("/dashboard");
       } else if (role === "user") {
-        await createSession({ email: authUser.email, role: "User" });
+        await createSession({ email: authUser.email,  role: "User" });
         setData("token", true); 
         notify("Login successful!", "success");
         router.push("/");
