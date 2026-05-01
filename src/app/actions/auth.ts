@@ -1,6 +1,8 @@
+// @/app/actions/auth.ts
 "use server";
 
 import { cookies } from "next/headers";
+import { supabase } from "@/lib/supabaseClient"; // Adjust path if needed
 
 /**
  * CREATE: Sets the initial session cookie
@@ -23,12 +25,12 @@ export async function createSession(user: { email: string; role: string }) {
 /**
  * READ: Retrieves and parses the session cookie
  */
-
 export async function getSession() {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
-  console.log("Session cookie value:", session); // Debug log to check cookie value
+  
   if (!session) return null;
+  
   try {
     return JSON.parse(session);
   } catch (e) {
@@ -36,17 +38,15 @@ export async function getSession() {
   }
 }
 
-
+/**
+ * UPDATE: Merges session data
+ */
 export async function updateSession(newData: Partial<{ email: string; role: string }>) {
-  const cookieStore = await cookies();
   const currentSession = await getSession();
 
   if (!currentSession) return null;
 
-  // Merge old data with new data
   const updatedUser = { ...currentSession, ...newData };
-  
-  // Re-run the create logic to overwrite the cookie with the new data
   await createSession(updatedUser);
   
   return updatedUser;
@@ -58,4 +58,30 @@ export async function updateSession(newData: Partial<{ email: string; role: stri
 export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete("session");
+}
+
+/**
+ * Login Action
+ */
+export async function loginAction(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  // 1. Authenticate using Supabase
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    return { error: "Invalid credentials" };
+  }
+
+  // 2. Set your custom session cookie on success
+  await createSession({
+    email: data.user.email!,
+    role: data.user.app_metadata?.role || "user", // Or whatever custom metadata you track
+  });
+
+  return { success: true };
 }

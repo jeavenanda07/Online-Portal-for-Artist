@@ -2,10 +2,11 @@ import {prisma} from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  console.log("Received Profile Data:", await req.clone().text()); // Log raw request body for debugging
   try {
     const data = await req.json();
 
-    console.log("Received Profile Data:", data);
+  
 
     const profile = await prisma.userProfile.create({
       data: {
@@ -14,8 +15,7 @@ export async function POST(req: Request) {
         username: data.username,
         gender: data.gender,
         birthdate: data.birthdate ? new Date(data.birthdate) : null,
-        // Fixed: changed data.avatar_url to data.avatar_pic
-        avatar_pic: data.avatar_pic || null, 
+        avatar_pic: data.avatar_pic || null,
       },
     });
 
