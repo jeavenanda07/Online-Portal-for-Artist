@@ -19,7 +19,6 @@ import Logo from "../ui/Logo";
 import { getSession, deleteSession } from "@/app/actions/auth";
 import { setData } from "@/utils/storage";
 import { notify } from "@/utils/toastHelper";
-// import { useUser } from "@/hooks/useUser";
 
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
@@ -33,7 +32,7 @@ export default function Header() {
   const [isLogin, setIsLogin] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [notificationDropdown, setNotificationDropdown] = useState(false);
-  // const { userData, loading } = useUser();
+  const [userData, setUserData] = useState<any>(null);
 
   const router = useRouter();
   const mobileMenu = usePopup();
@@ -45,6 +44,7 @@ export default function Header() {
       setData("token", false); 
       setIsLogin(false);
       setSession(null);
+      setUserData(null);
       profileMenu.close();
       notify("Logged out successfully", "success");
       router.push("/");
@@ -56,6 +56,31 @@ export default function Header() {
   const handleCloseChat = () => {
     setIsChatOpen(false);
   };
+
+  useEffect(() => {
+    const fetchSessionAndProfile = async () => {
+      const sessionData = await getSession();
+      setSession(sessionData);
+      setIsLogin(!!sessionData);
+
+      if (sessionData?.email) {
+        try {
+          const response = await fetch("/api/user/profile");
+          if (response.ok) {
+            const data = await response.json();
+            setUserData(data);
+          }
+        } catch (error) {
+          console.error("Error loading user profile", error);
+        }
+      }
+    };
+
+    fetchSessionAndProfile();
+  }, []);
+
+  console.log("Session in Header:", session);
+  console.log("User Data in Header:", userData?.avatar_pic);
 
   return (
     <header className="fixed top-0 left-0 w-full h-20 z-[100] border-b border-white/5 bg-primary/80 backdrop-blur-xl px-6 lg:px-12 flex items-center justify-between">
@@ -81,72 +106,67 @@ export default function Header() {
 
       {/* --- RIGHT: ACTIONS --- */}
       <div className="flex items-center gap-4">
-        {!isLogin && (
+        {isLogin ? (
           <>
-            {isLogin ? (
-              <>
-                <div className="hidden md:flex items-center gap-2 mr-4">
-                  <button 
-                    onClick={() => setIsChatOpen(i => !i)} 
-                    className="p-3 text-zinc-400 hover:text-green-400 transition-colors"
-                  >
-                    <IoChatbubbleEllipsesOutline size={22}/>
-                  </button>
-                  <button 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        setNotificationDropdown(!notificationDropdown); 
-                      }}
-                      className={`p-3 rounded-full transition-all relative ${notificationDropdown ? 'bg-green-400/10 text-green-400' : 'text-zinc-400'}`}
-                  >
-                      <Bell size={20} />
-                  </button>
-                </div>
+            <div className="hidden md:flex items-center gap-2 mr-4">
+              <button 
+                onClick={() => setIsChatOpen(i => !i)} 
+                className="p-3 text-zinc-400 hover:text-green-400 transition-colors"
+              >
+                <IoChatbubbleEllipsesOutline size={22}/>
+              </button>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setNotificationDropdown(!notificationDropdown); 
+                }}
+                className={`p-3 rounded-full transition-all relative ${notificationDropdown ? 'bg-green-400/10 text-green-400' : 'text-zinc-400'}`}
+              >
+                <Bell size={20} />
+              </button>
+            </div>
 
-                <div className="relative">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      profileMenu.toggle(); 
-                    }}
-                    className="relative group p-1 rounded-full border-2 border-transparent hover:border-green-400 transition-all"
-                  >
-                    <Image
-                      // src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
-                      src={"/avatar_placeholder.png"}
-                      alt="profile"
-                      width={40}
-                      height={40}
-                      className="rounded-full h-10 w-10 object-cover"
-                    />
-                  </button>
+            <div className="relative">
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  profileMenu.toggle(); 
+                }}
+                className="relative group p-1 rounded-full border-2 border-transparent hover:border-green-400 transition-all"
+              >
+                <Image
+                  src={userData?.avatar_pic ? userData.avatar_pic : "/avatar_placeholder.png"}
+                  alt="profile"
+                  width={40}
+                  height={40}
+                  className="rounded-full h-10 w-10 object-cover"
+                />
+              </button>
 
-                  <AnimatePresence>
-                    {profileMenu.isOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        ref={profileMenu.ref}
-                        className="absolute top-14 right-0 z-[110]"
-                      >
-                        <ProfileMenu handleLogOut={handleLogOut} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-8">
-                <Link href="/login" className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
-                  Login
-                </Link>
-                <Link href="/register" className="px-8 py-3 bg-green-400 text-black text-xs font-black uppercase tracking-widest rounded-full hover:scale-105 transition-all">
-                  Join Studio
-                </Link>
-              </div>
-            )}
+              <AnimatePresence>
+                {profileMenu.isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    ref={profileMenu.ref as any}
+                    className="absolute top-14 right-0 z-[110]"
+                  >
+                    <ProfileMenu handleLogOut={handleLogOut} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </>
+        ) : (
+          <div className="flex items-center gap-8">
+            <Link href="/login" className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
+              Login
+            </Link>
+            <Link href="/register" className="px-8 py-3 bg-green-400 text-black text-xs font-black uppercase tracking-widest rounded-full hover:scale-105 transition-all">
+              Join Studio
+            </Link>
+          </div>
         )}
 
         {/* MOBILE MENU TOGGLE */}

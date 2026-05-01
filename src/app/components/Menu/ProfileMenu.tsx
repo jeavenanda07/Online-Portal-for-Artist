@@ -9,10 +9,8 @@ import {
   User, ChevronRight, Monitor
 } from "lucide-react";
 
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getSession } from "@/app/actions/auth";
 import { setTheme as setCookieTheme } from "@/app/actions/theme";
-// import {useUser} from "@/hooks/useUser";
 
 interface ProfileMenuProps {
   handleLogOut: () => void;
@@ -20,19 +18,60 @@ interface ProfileMenuProps {
 
 type Theme = "light" | "dark";
 
+export const ProfileMenuSkeleton = () => {
+  return (
+    <div className="flex items-center justify-center animate-pulse">
+      <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary/80 backdrop-blur-2xl shadow-2xl">
+        
+        <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5">
+          <div className="w-20 h-20 rounded-full bg-zinc-800 mb-4" />
+          <div className="h-5 w-32 bg-zinc-800 rounded-md mb-2" />
+          <div className="h-3 w-40 bg-zinc-800 rounded-md mb-4" />
+          <div className="h-4 w-16 bg-zinc-800 rounded-full" />
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          
+          <div className="h-px bg-white/5 my-2 mx-4" />
+
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-14 bg-zinc-800 rounded-[1.5rem]" />
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
 const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
   const [session, setSession] = useState<{ email: string; Role: string } | null>(null);
-  // const { userData, loading } = useUser();
-  const { value: theme, setValue: setLocalTheme } = useLocalStorage<Theme>("theme", "dark");
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const data = await getSession();
-      if (data) setSession(data);
-    };
-    fetchSession();
-  }, []);
+    const fetchSessionAndData = async () => {
+      try {
+        const sessionData = await getSession();
+        if (sessionData) setSession(sessionData);
 
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching session/profile data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessionAndData();
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -40,11 +79,14 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     root.classList.add(theme);
   }, [theme]);
 
-
   const handleThemeChange = async (newTheme: Theme) => {
-    setLocalTheme(newTheme);
+    setThemeState(newTheme);
     await setCookieTheme(newTheme);
   };
+
+  if (loading) {
+    return <ProfileMenuSkeleton />;
+  }
 
   return (
     <div className="flex items-center justify-center">
@@ -58,8 +100,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
                 <Image
                   width={80}
                   height={80}
-                  // src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
-                  src={"/avatar_placeholder.png"}
+                  src={userData?.avatar_pic || "/avatar_placeholder.png"}
                   alt="user profile"
                   className="h-20 w-20 rounded-full bg-primary object-cover border-2 border-black"
                 />
@@ -68,11 +109,10 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
           </div>
 
           <h1 className="text-xl font-heading italic uppercase tracking-tighter">
-            {/* {userData?.full_name || "Artist Name"} */}
-            {"Artist Name"}
+            {userData?.full_name || "Artist Name"}
           </h1>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-            {/* {userData?.email || ""} */}
+            {userData?.email || session?.email || ""}
           </p>
           {session?.Role && (
             <span className="mt-2 text-[9px] font-black text-green-400 border border-green-400/20 px-2 py-0.5 rounded-full uppercase">

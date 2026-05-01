@@ -88,11 +88,17 @@ const ProfileSetup = () => {
       body: JSON.stringify({
         ...formData,
         credentials_id: user.id,
+        avatar_pic: formData.avatar_pic, // Ensure it gets sent over to create or update correctly
       }),
     });
 
     if (response.ok) {
-      notify("Profile created successfully!", "success");
+      await createSession({
+        email: user.email || "",
+        role: "User",
+      });
+
+      notify("Profile created and session initialized!", "success");
 
       setTimeout(() => {
         router.push("/register/profile-setup/get-started");
