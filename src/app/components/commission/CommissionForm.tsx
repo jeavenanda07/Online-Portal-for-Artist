@@ -1,15 +1,13 @@
 "use client";
 
 import classNames from "clsx";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ImgRef from "./ImgRef";
 import Details from "./Details";
-import Review from "./Review";
 import { notify } from "@/utils/toastHelper";
-import { getOwnerProfile, getUserProfile } from "@/utils/getUser";
 import { FinalCommissionData } from "@/types/commission";
 import { RiArrowRightSLine } from "react-icons/ri";
-import {setData, getData} from "@/utils/storage"
+import { setData, getData } from "@/utils/storage";
 
 const nav = [
   { number: 1, name: "Upload Reference Image" },
@@ -27,7 +25,6 @@ const CommissionForm = ({ func, username }: Props) => {
   const [images, setImages] = useState<{ file: File; url: string }[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
-  
 
   const [formData, setFormData] = useState({
     title: "",
@@ -35,7 +32,7 @@ const CommissionForm = ({ func, username }: Props) => {
     artType: "Digital Art",
     deadline: "",
     budget: "",
-    status: "Pending"
+    status: "Pending",
   });
 
   // Final review data
@@ -52,57 +49,58 @@ const CommissionForm = ({ func, username }: Props) => {
     }
   };
 
-
   const handleSubmit = () => {
     if (tags.length < 1) {
       notify("Add at least 1 tag to continue", "error");
       return;
     }
 
+    /* Uncomment and adapt this block when you are ready to use the review/final submit steps.
+      Make sure to provide a valid userId if used.
+    */
+    /*
     const finalData: FinalCommissionData = {
       ...formData,
       tags,
       images,
-      commissionTo: getUserProfile(userId),
-      commissionFrom: username ?,
+      commissionTo: "", 
+      commissionFrom: username || "",
       createdAt: new Date().toLocaleString(),
     };
 
     setReviewData(finalData);
     setStep(3);
+    */
   };
-
 
   // Final Submit
   const handleFinalSubmit = (): FinalCommissionData => {
     if (!reviewData) {
       throw new Error("No review data found");
     }
-  
+
     const existing = getData<FinalCommissionData[]>("myCommissionRequest") || [];
-  
     const updated = [...existing, reviewData];
-  
+
     setData("myCommissionRequest", updated);
-  
+
     notify("Commission sent successfully", "success");
-  
+
     setTimeout(() => {
       notify("View your order(s) here", "success");
       window.location.href = "/my-request";
     }, 1500);
+
     return reviewData;
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center  w-full ">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center w-full">
       <section className="max-w-5xl rounded-lg shadow-lg overflow-hidden">
-
-
         <div className="grid grid-cols-3 px-6 py-4 max-w-[50em] w-full justify-center mx-auto">
           {nav.map((item) => (
-            <div key={item.number} className="flex items-center gap-2 text-white  justify-evenly">
-              <div className="flex items-center gap-2 ">
+            <div key={item.number} className="flex items-center gap-2 text-white justify-evenly">
+              <div className="flex items-center gap-2">
                 <span
                   className={classNames(
                     "h-8 w-8 flex items-center justify-center rounded-full text-sm font-bold",
@@ -119,10 +117,7 @@ const CommissionForm = ({ func, username }: Props) => {
                 </span>
               </div>
 
-                {
-                  item.number != 3 && <RiArrowRightSLine className="ml-1/2"/>
-                }
-              
+              {item.number !== 3 && <RiArrowRightSLine className="ml-1" />}
             </div>
           ))}
         </div>
@@ -151,10 +146,10 @@ const CommissionForm = ({ func, username }: Props) => {
                 inputValue={inputValue}
                 setInputValue={setInputValue}
                 handleTag={handleTag}
-                removeTag={(tag) =>
+                removeTag={(tag: string) =>
                   setTags((prev) => prev.filter((t) => t !== tag))
                 }
-                handleChange={(e) =>
+                handleChange={(e: any) =>
                   setFormData({
                     ...formData,
                     [e.target.name]: e.target.value,
@@ -167,16 +162,16 @@ const CommissionForm = ({ func, username }: Props) => {
             </div>
 
             {/* STEP 3 */}
-            <div className="w-full shrink-0 sm:p-6 my-auto">
+            {/* <div className="w-full shrink-0 sm:p-6 my-auto">
               {reviewData && (
                 <Review
                   formData={reviewData}
                   goBack={() => setStep(2)}
                   submit={handleFinalSubmit}
-                  userId={userId}
+                  userId={""} // Pass your userId string here
                 />
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
