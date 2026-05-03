@@ -4,11 +4,13 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { notify } from '@/utils/toastHelper';
-import { createSession } from '@/app/actions/auth';
+import {getSession, createSession } from '@/app/actions/auth';
 import Logo from '@/app/components/ui/Logo';
+import { getUserInfo } from '@/app/actions/user';
 
 const ProfileSetup = () => {
   const router = useRouter();
+  const [user, setUser] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [isPending, setIsPending] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,12 +21,10 @@ const ProfileSetup = () => {
     avatar_pic: "",
   });
 
-  
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      console.log("Checking user session:", user);
       if (!user || !user.email) {
         notify("Session expired", "error");
         router.push("/login");
@@ -36,21 +36,28 @@ const ProfileSetup = () => {
         const data = await res.json();
   
         if (data.exists) {
+          const userInfo = await getUserInfo(undefined, user?.user_metadata.email);
+          console.log("userInfo", userInfo)
+
           await createSession({
-            email: user.email || "",
-            username: user.user_metadata?.full_name ? `@${user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
+            email: userInfo?.credentials.gmail || "",
+            username: userInfo?.username,
             role: "User",
           });
-
-
+  
           router.push("/");
-    
+          
           setTimeout(() => {
-            notify("Welcome back", "success");
+            const displayName = userInfo?.full_name || userInfo?.username || "User";
+            notify(`Welcome back ${displayName}`, "success");
           }, 1500);
-
-
         } else {
+          setFormData((prev) => ({
+              ...prev,
+              full_name: user.user_metadata?.full_name || "",
+              username: user.user_metadata?.full_name ? `@${user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
+              avatar_pic: user.user_metadata?.avatar_url || "",
+          }));
           notify("Please complete your profile setup", "info");
           setLoading(false);
         }
@@ -63,46 +70,41 @@ const ProfileSetup = () => {
     checkUser();
   }, []);
 
-  useEffect(() => {
-    const initSetup = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        await fetch('/api/auth/sync-user', {
-          method: 'POST',
-          body: JSON.stringify({ user_id: user.id, gmail: user.email }),
-        });
-
-        setFormData((prev) => ({
-          ...prev,
-          full_name: user.user_metadata?.full_name || "",
-          username: user.user_metadata?.full_name ? `@${user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
-          avatar_pic: user.user_metadata?.avatar_url || "",
-        }));
-      }
-      setLoading(false);
-    };
-
-    initSetup();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return alert("Session expired");
-    if (!formData.birthdate) return notify("Please enter your birthdate", "error");
+    if (!user) {
+      alert("Session expired");
+      return;
+    }
 
+    if (!formData.birthdate) {
+      notify("Please enter your birthdate", "error");
+      return;
+    }
+
+    await fetch('/api/auth/sync-user', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user_id: user.id, gmail: user.email }),
+    });
+
+    // 2. Submit profile data
     const response = await fetch('/api/profile/create', {
       method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         ...formData,
         credentials_id: user.id,
-        avatar_pic: formData.avatar_pic, // Ensure it gets sent over to create or update correctly
+        avatar_pic: formData.avatar_pic,
       }),
     });
 
-    console.log("Profile creation response:", response);
     if (response.ok) {
       await createSession({
         email: user.email || "",
@@ -111,7 +113,6 @@ const ProfileSetup = () => {
       });
 
       notify("Profile created and session initialized!", "success");
-
       setTimeout(() => {
         router.push("/register/profile-setup/get-started");
       }, 1500);
@@ -226,3 +227,9 @@ const ProfileSetup = () => {
 };
 
 export default ProfileSetup;
+
+
+         // await fetch('/api/auth/sync-user', {
+        //   method: 'POST',
+        //   body: JSON.stringify({ user_id: user.id, gmail: user.email }),
+        // });

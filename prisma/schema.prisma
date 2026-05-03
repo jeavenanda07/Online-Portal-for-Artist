@@ -39,22 +39,21 @@ enum Gender {
 model UserProfile {
   user_profile_id  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   
-  // Foreign Key linking to Credentials
   credentials_id   String      @unique @db.Uuid
   credentials      Credentials @relation(fields: [credentials_id], references: [user_id], onDelete: Cascade)
 
   full_name        String
   username         String      @unique
-  avatar_pic       String?   // Optional URL
-  background_cover String?   // Optional URL
-  specialization   String?   // e.g., "Digital Illustrator"
+  avatar_pic       String?
+  background_cover String?
+  specialization   String?
   gender           Gender      @default(PREFER_NOT_TO_SAY)
-  is_open_for_hire Boolean   @default(false)
+  is_open_for_hire Boolean     @default(false)
   birthdate        DateTime?
   contact          String?
   about_me         String?     @db.Text
-  social_links     Json?     // Stores an object of links (FB, IG, etc.)
-  display_location String?   // e.g., "Atimonan, Quezon"
+  social_links     Json?
+  display_location String?
 
   updated_at       DateTime    @updatedAt
   posts            Post[]

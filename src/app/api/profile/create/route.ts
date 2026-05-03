@@ -1,6 +1,5 @@
 import {prisma} from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { notify } from "@/utils/toastHelper";
 
 export async function POST(req: Request) {
   try {
@@ -13,12 +12,10 @@ export async function POST(req: Request) {
         username: data.username,
         gender: data.gender,
         birthdate: data.birthdate ? new Date(data.birthdate) : null,
-        // Fixed: changed data.avatar_url to data.avatar_pic
         avatar_pic: data.avatar_pic || null, 
       },
     });
 
-    notify("Profile created successfully", "success");
     return NextResponse.json(profile);
   } catch (error) {
     console.error("Profile Error:", error);

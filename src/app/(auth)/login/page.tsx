@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { TfiEmail } from "react-icons/tfi";
 import { CiLock } from "react-icons/ci";
-
 import Logo from "@/app/components/ui/Logo";
 import { validateUser } from "@/utils/validator";
 import { notify } from "@/utils/toastHelper";
@@ -55,7 +54,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/register/profile-setup`, 
+        redirectTo: `${window.location.origin}/login/check-signin`, 
       },
     });
 

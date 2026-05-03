@@ -19,6 +19,9 @@ import Logo from "../ui/Logo";
 import { getSession, deleteSession } from "@/app/actions/auth";
 import { setData } from "@/utils/storage";
 import { notify } from "@/utils/toastHelper";
+import { supabase } from "@/lib/supabaseClient";
+import { getUserInfo } from "@/app/actions/user";
+import { prisma } from "@/lib/prisma";
 
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
@@ -28,26 +31,44 @@ export const nav_links = [
 ];
 
 export default function Header() {
-  const [session, setSession] = useState<any>(null);
-  const [isLogin, setIsLogin] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [profile, setProfile] = useState<any>();
+  const [isLogin, setIsLoginIn] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [notificationDropdown, setNotificationDropdown] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-
   const router = useRouter();
   const mobileMenu = usePopup();
   const profileMenu = usePopup();
 
+  useEffect(() => {
+    const fetchSessionAndData = async () => {
+      try {
+        const sessionData = await getSession();
+        console.log("session check", await supabase.auth.getSession());
+        if (sessionData) {
+          setIsLoginIn(true);
+          setProfile(await getUserInfo(sessionData?.username));
+        }
+      } catch (error) {
+        console.error("Error fetching session/profile data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessionAndData();
+  }, []);
+
   const handleLogOut = async () => {
+    await deleteSession();
+    await supabase.auth.signOut();
     try {
-      await deleteSession();
+      router.push("/");
+      setIsLoginIn(false)
       setData("token", false); 
-      setIsLogin(false);
-      setSession(null);
-      setUserData(null);
       profileMenu.close();
       notify("Logged out successfully", "success");
-      router.push("/");
+
     } catch (error) {
       notify("Logout failed", "error");
     }
@@ -57,32 +78,8 @@ export default function Header() {
     setIsChatOpen(false);
   };
 
-  useEffect(() => {
-    const fetchSessionAndProfile = async () => {
-      const sessionData = await getSession();
-      setSession(sessionData);
-      setIsLogin(!!sessionData);
-
-      if (sessionData?.email) {
-        try {
-          const response = await fetch("/api/user/profile");
-          if (response.ok) {
-            const data = await response.json();
-            setUserData(data);
-          }
-        } catch (error) {
-          console.error("Error loading user profile", error);
-        }
-      }
-    };
-
-    fetchSessionAndProfile();
-  }, []);
-
-
   return (
     <header className="fixed top-0 left-0 w-full h-20 z-[100] border-b border-white/5 bg-primary/80 backdrop-blur-xl px-6 lg:px-12 flex items-center justify-between">
-      
       {/* --- LEFT: LOGO & NAV --- */}
       <div className="flex items-center gap-12">
         <Logo />
@@ -104,14 +101,24 @@ export default function Header() {
 
       {/* --- RIGHT: ACTIONS --- */}
       <div className="flex items-center gap-4">
-        {isLogin ? (
+        {loading ? (
+          /* --- LOADING SKELETON --- */
+          <div className="flex items-center gap-6 animate-pulse">
+            <div className="hidden md:flex items-center gap-4 mr-2">
+              <div className="w-10 h-10 bg-white/5 rounded-xl" />
+              <div className="w-10 h-10 bg-white/5 rounded-full" />
+            </div>
+            <div className="w-10 h-10 bg-white/5 rounded-full" />
+          </div>
+        ) : isLogin ? (
+          /* --- LOGGED IN ACTIONS --- */
           <>
             <div className="hidden md:flex items-center gap-2 mr-4">
               <button 
                 onClick={() => setIsChatOpen(i => !i)} 
                 className="p-3 text-zinc-400 hover:text-green-400 transition-colors"
               >
-                <IoChatbubbleEllipsesOutline size={22}/>
+                <IoChatbubbleEllipsesOutline size={22} />
               </button>
               <button 
                 onClick={(e) => { 
@@ -133,7 +140,7 @@ export default function Header() {
                 className="relative group p-1 rounded-full border-2 border-transparent hover:border-green-400 transition-all"
               >
                 <Image
-                  src={userData?.avatar_pic ? userData.avatar_pic : "/avatar_placeholder.png"}
+                  src={profile?.avatar_pic || "/avatar_placeholder.png"}
                   alt="profile"
                   width={40}
                   height={40}
@@ -157,6 +164,7 @@ export default function Header() {
             </div>
           </>
         ) : (
+          /* --- LOGGED OUT ACTIONS --- */
           <div className="flex items-center gap-8">
             <Link href="/login" className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
               Login
@@ -206,8 +214,8 @@ export default function Header() {
         )}
       </AnimatePresence>
 
-      <Notification func={setNotificationDropdown} isOpen={notificationDropdown}/>
-      <ChatPopUp isOpen={isChatOpen} onClose={handleCloseChat}/>
+      <Notification func={setNotificationDropdown} isOpen={notificationDropdown} />
+      <ChatPopUp isOpen={isChatOpen} onClose={handleCloseChat} />
     </header>
   );
 }

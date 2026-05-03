@@ -12,6 +12,7 @@ import {
 import { getSession } from "@/app/actions/auth";
 import { setTheme as setCookieTheme } from "@/app/actions/theme";
 import {sessionData } from "@/types/session"
+import {getUserInfo} from "@/app/actions/user"
 
 interface ProfileMenuProps {
   handleLogOut: () => void;
@@ -57,13 +58,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     const fetchSessionAndData = async () => {
       try {
         const sessionData = await getSession();
-        if (sessionData) setSession(sessionData);
-
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const data = await response.json();
-          setUserData(data);
-        }
+        if (sessionData) setUserData(await getUserInfo(sessionData?.username));
       } catch (error) {
         console.error("Error fetching session/profile data", error);
       } finally {
@@ -89,8 +84,6 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     return <ProfileMenuSkeleton />;
   }
 
-
-  console.log("Session Data:", session?.username);
   return (
     <div className="flex items-center justify-center">
       <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
@@ -115,11 +108,11 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
             {userData?.full_name || "Artist Name"}
           </h1>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-            {userData?.email || session?.email || ""}
+            {userData?.credentials?.gmail || session?.email || ""}
           </p>
-          {session?.role && (
+          {userData && (
             <span className="mt-2 text-[9px] font-black text-green-400 border border-green-400/20 px-2 py-0.5 rounded-full uppercase">
-              {session.role}
+              {userData?.credentials?.role}
             </span>
           )}
         </div>

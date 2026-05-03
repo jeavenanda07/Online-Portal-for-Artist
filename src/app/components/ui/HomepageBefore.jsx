@@ -9,6 +9,8 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect, useCallback } from "react";
 import Stack from "@/app/components/ui/Stack";
 import CardSwap, { Card } from "@/app/components/ui/CardSwap";
+import { supabase } from "@/lib/supabaseClient";
+import {deleteSession} from "@/app/actions/auth"
 
 const heroSectionImgs = [
   {
@@ -118,6 +120,7 @@ const fadeTransition = {
   ease: "easeInOut",
 };
 
+
 const page = () => {
   const [index, setIndex] = useState(0);
 
@@ -136,6 +139,17 @@ const page = () => {
   const prevSlide = () => {
     setIndex((prev) => (prev === 0 ? featuredArt.length - 1 : prev - 1));
   };
+
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const userSession = await supabase.auth.getSession();
+    
+      console.log(userSession);
+    }
+
+    checkUserSession(); 
+    deleteSession();
+  }, [])
   return (
     <main className="max-w-[1580px] w-full mx-auto overflow-hidden flex flex-col gap-0 px-4 md:px-10">
       {/* First section banner. Hero section */}
