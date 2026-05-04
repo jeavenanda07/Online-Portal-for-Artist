@@ -60,14 +60,16 @@ export default function Header() {
   }, []);
 
   const handleLogOut = async () => {
-    await deleteSession();
-    await supabase.auth.signOut();
     try {
-      router.push("/");
-      setIsLoginIn(false)
+      await supabase.auth.signOut();
+      await deleteSession();
+  
+      setIsLoginIn(false);
       setData("token", false); 
       profileMenu.close();
       notify("Logged out successfully", "success");
+      router.refresh();
+      router.push("/");
 
     } catch (error) {
       notify("Logout failed", "error");

@@ -1,24 +1,21 @@
+// app/api/auth/check-email/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Now this will work!
+import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const email = searchParams.get("email");
+export async function GET(req: NextRequest) {
+  const email = req.nextUrl.searchParams.get("email");
 
   if (!email) {
-    return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    return NextResponse.json({ message: "Email is required" }, { status: 400 });
   }
 
-  try {
-    const credential = await prisma.credentials.findFirst({
-      where: {
-        gmail: email,
-      },
+  const credentials = await prisma.credentials.findUnique({
+    where: { gmail: email },
+    include: { user_profile: true }, // 👈 include the profile
   });
 
-    return NextResponse.json({ exists: !!credential });
-  } catch (error) {
-    console.error("Error checking email with Prisma:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+  return NextResponse.json({
+    exists: !!credentials,                        // email is registered
+    hasProfile: !!credentials?.user_profile,      // profile setup is done
+  });
 }

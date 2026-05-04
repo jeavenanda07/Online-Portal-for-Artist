@@ -24,7 +24,7 @@ const ProfileSetup = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-
+  
       if (!user || !user.email) {
         notify("Session expired", "error");
         router.push("/login");
@@ -35,10 +35,10 @@ const ProfileSetup = () => {
         const res = await fetch(`/api/auth/check-email?email=${user.email}`);
         const data = await res.json();
   
-        if (data.exists) {
+        console.log(data.hasProfile)
+        if (data.hasProfile) {
           const userInfo = await getUserInfo(undefined, user?.user_metadata.email);
-          console.log("userInfo", userInfo)
-
+  
           await createSession({
             email: userInfo?.credentials.gmail || "",
             username: userInfo?.username,
@@ -46,17 +46,20 @@ const ProfileSetup = () => {
           });
   
           router.push("/");
-          
+  
           setTimeout(() => {
             const displayName = userInfo?.full_name || userInfo?.username || "User";
             notify(`Welcome back ${displayName}`, "success");
           }, 1500);
+  
         } else {
           setFormData((prev) => ({
-              ...prev,
-              full_name: user.user_metadata?.full_name || "",
-              username: user.user_metadata?.full_name ? `@${user.user_metadata.full_name.replace(/\s+/g, '_').toLowerCase()}` : "",
-              avatar_pic: user.user_metadata?.avatar_url || "",
+            ...prev,
+            full_name: user.user_metadata?.full_name || "",
+            username: user.user_metadata?.full_name
+              ? `@${user.user_metadata.full_name.replace(/\s+/g, "_").toLowerCase()}`
+              : "",
+            avatar_pic: user.user_metadata?.avatar_url || "",
           }));
           notify("Please complete your profile setup", "info");
           setLoading(false);
@@ -86,13 +89,10 @@ const ProfileSetup = () => {
 
     await fetch('/api/auth/sync-user', {
       method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json"},
       body: JSON.stringify({ user_id: user.id, gmail: user.email }),
     });
 
-    // 2. Submit profile data
     const response = await fetch('/api/profile/create', {
       method: 'POST',
       headers: {
@@ -111,7 +111,6 @@ const ProfileSetup = () => {
         username: formData.username,
         role: "User",
       });
-
       notify("Profile created and session initialized!", "success");
       setTimeout(() => {
         router.push("/register/profile-setup/get-started");

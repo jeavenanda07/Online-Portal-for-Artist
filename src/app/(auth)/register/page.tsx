@@ -11,6 +11,7 @@ import Logo from "@/app/components/ui/Logo";
 import { supabase } from "@/lib/supabaseClient";
 import { getSession } from "@/app/actions/auth";
 import { notify } from "@/utils/toastHelper";
+import { validateUser } from "@/utils/validator";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -56,39 +57,43 @@ export default function RegisterPage() {
     }
   };
 
-  // Email + password sign-up handler
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsPending(true);
-    
-    console.log("Attempting signup for:", email);
-  
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        // This ensures that after they click the email link, 
-        // they eventually land back where you want them.
-        emailRedirectTo: `${window.location.origin}/register/profile-setup`,
+
+    const validated = validateUser(email, password);
+      if (validated.length !== 0) {
+        notify(validated.join(", "), "error");
+        setIsPending(false);
+        return;
       }
-    });
-  
-    if (error) {
-      console.error("Supabase Error:", error.message);
-      notify(`Signup Failed: ${error.message}`, "error");
-    } else {
-      console.log("Supabase Response Data:", data);
       
-      // Check if the user already exists
-      if (data.user?.identities?.length === 0) {
-        notify("This email is already registered! Try logging in instead.", "error");
-      } else if (data.user) {
-        // ✅ SUCCESS CONDITION: New user created
-        notify("Account created! Please check your email to confirm.", "success");
-        router.push("/register/profile-setup");
+    try{
+      const checkRes = await fetch(`/api/auth/check-email?email=${email}`);
+      const checkData = await checkRes.json();
+  
+      if (checkData.exists) {
+        notify("Email already exists. Please use a different email.", "error");
+        return;
       }
+
+      const registerRes = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const registerData = await registerRes.json();
+      if (!registerRes.ok) {
+        notify(registerData.message || "Registration failed.", "error");
+      }
+      
+      router.push("/register/profile-setup");
+    } catch (err){
+      notify("Something went wrong. Please try again.", "error");
+    } finally{
+      setIsPending(false);
     }
-    setIsPending(false);
   };
 
   if (isCheckingAuth) {
