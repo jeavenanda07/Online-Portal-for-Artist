@@ -145,7 +145,6 @@ const ProfileSetup = () => {
       } else {
         notify("Error creating profile. Username might be taken.", "error");
       }
-  
     } catch (err) {
       console.error(err);
       notify("Something went wrong. Please try again.", "error");

@@ -11,6 +11,7 @@ import Stack from "@/app/components/ui/Stack";
 import CardSwap, { Card } from "@/app/components/ui/CardSwap";
 import { supabase } from "@/lib/supabaseClient";
 import {deleteSession} from "@/app/actions/auth"
+import { getSession } from "next-auth/react";
 
 const heroSectionImgs = [
   {
@@ -143,6 +144,7 @@ const page = () => {
   useEffect(() => {
     const checkUserSession = async () => {
       const userSession = await supabase.auth.getSession();
+      await getSession()
     
       console.log(userSession);
     }
