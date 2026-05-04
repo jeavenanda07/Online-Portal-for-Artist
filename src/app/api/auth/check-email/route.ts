@@ -15,7 +15,9 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({
-    exists: !!credentials,                        // email is registered
-    hasProfile: !!credentials?.user_profile,      // profile setup is done
+    exists: !!credentials,
+    hasProfile: !!credentials?.user_profile,
+    hasPassword: !!credentials?.password,
+    credentials_id: credentials?.user_id ?? null, // 👈 add this
   });
 }

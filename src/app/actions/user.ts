@@ -26,7 +26,7 @@ export async function checkEmailExists(email: string) {
       },
     });
 
-    return !!credential;
+    return credential;
   } catch (error) {
     console.error("Error checking email existence:", error);
     return false;

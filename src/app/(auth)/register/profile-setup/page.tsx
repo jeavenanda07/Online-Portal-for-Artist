@@ -7,6 +7,7 @@ import { notify } from '@/utils/toastHelper';
 import {getSession, createSession } from '@/app/actions/auth';
 import Logo from '@/app/components/ui/Logo';
 import { getUserInfo } from '@/app/actions/user';
+import {checkEmailExists} from "@/app/actions/user"
 
 const ProfileSetup = () => {
   const router = useRouter();
@@ -20,24 +21,27 @@ const ProfileSetup = () => {
     birthdate: "",
     avatar_pic: "",
   });
-
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
   
-      if (!user || !user.email) {
+      // For manual register, there's no supabase session — get email from your own session
+      const session = await getSession();
+      const email = user?.email || session?.email;
+  
+      if (!email) {
         notify("Session expired", "error");
-        router.push("/login");
+        // router.push("/login");
         return;
       }
   
       try {
-        const res = await fetch(`/api/auth/check-email?email=${user.email}`);
+        const res = await fetch(`/api/auth/check-email?email=${email}`);
         const data = await res.json();
   
-        console.log(data.hasProfile)
         if (data.hasProfile) {
-          const userInfo = await getUserInfo(undefined, user?.user_metadata.email);
+          // Already fully set up — redirect home
+          const userInfo = await getUserInfo(undefined, email);
   
           await createSession({
             email: userInfo?.credentials.gmail || "",
@@ -53,17 +57,19 @@ const ProfileSetup = () => {
           }, 1500);
   
         } else {
+          // No profile yet — prefill from Google metadata if available, otherwise leave blank
           setFormData((prev) => ({
             ...prev,
-            full_name: user.user_metadata?.full_name || "",
-            username: user.user_metadata?.full_name
+            full_name: user?.user_metadata?.full_name || "",
+            username: user?.user_metadata?.full_name
               ? `@${user.user_metadata.full_name.replace(/\s+/g, "_").toLowerCase()}`
               : "",
-            avatar_pic: user.user_metadata?.avatar_url || "",
+            avatar_pic: user?.user_metadata?.avatar_url || "",
           }));
           notify("Please complete your profile setup", "info");
           setLoading(false);
         }
+  
       } catch (error) {
         console.error(error);
         notify("Something went wrong", "error");
@@ -75,48 +81,74 @@ const ProfileSetup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      alert("Session expired");
+    const cookieSession = await getSession();
+  
+    // Get email from either Google Auth or manual session
+    const email = user?.email || cookieSession?.email;
+  
+    if (!email) {
+      notify("Session expired", "error");
+      router.push("/login");
       return;
     }
-
+  
     if (!formData.birthdate) {
       notify("Please enter your birthdate", "error");
       return;
     }
-
-    await fetch('/api/auth/sync-user', {
-      method: 'POST',
-      headers: { "Content-Type": "application/json"},
-      body: JSON.stringify({ user_id: user.id, gmail: user.email }),
-    });
-
-    const response = await fetch('/api/profile/create', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...formData,
-        credentials_id: user.id,
-        avatar_pic: formData.avatar_pic,
-      }),
-    });
-
-    if (response.ok) {
-      await createSession({
-        email: user.email || "",
-        username: formData.username,
-        role: "User",
+  
+    try {
+      // Fetch credentials from DB to get the user_id for manual register users
+      const checkRes = await fetch(`/api/auth/check-email?email=${email}`);
+      const checkData = await checkRes.json();
+  
+      // user_id: Google Auth uses supabase user.id, manual uses credentials_id from DB
+      const credentials_id = user?.id || checkData.credentials_id;
+      console.log("checkData", checkData)
+  
+      if (!credentials_id) {
+        notify("Could not find your account. Please try again.", "error");
+        return;
+      }
+  
+      // Sync user (only needed for Google Auth, safe to call for both)
+      await fetch('/api/auth/sync-user', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: credentials_id, gmail: email }),
       });
-      notify("Profile created and session initialized!", "success");
-      setTimeout(() => {
-        router.push("/register/profile-setup/get-started");
-      }, 1500);
-    } else {
-      notify("Error creating profile. Username might be taken.", "error");
+  
+      // Create profile
+      const response = await fetch('/api/profile/create', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          credentials_id,
+          avatar_pic: formData.avatar_pic,
+        }),
+      });
+  
+      if (response.ok) {
+        await createSession({
+          email: email,
+          username: formData.username,
+          role: "User",
+        });
+  
+        notify("Profile created and session initialized!", "success");
+        setTimeout(() => {
+          router.push("/register/profile-setup/get-started");
+        }, 1500);
+      } else {
+        notify("Error creating profile. Username might be taken.", "error");
+      }
+  
+    } catch (err) {
+      console.error(err);
+      notify("Something went wrong. Please try again.", "error");
     }
   };
 

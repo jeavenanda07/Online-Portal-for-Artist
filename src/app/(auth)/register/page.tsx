@@ -9,9 +9,9 @@ import { CiLock } from "react-icons/ci";
 
 import Logo from "@/app/components/ui/Logo";
 import { supabase } from "@/lib/supabaseClient";
-import { getSession } from "@/app/actions/auth";
+import { getSession, createSession } from "@/app/actions/auth";
 import { notify } from "@/utils/toastHelper";
-import { validateUser } from "@/utils/validator";
+import { validateUser } from "@/utils/validator"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -60,38 +60,67 @@ export default function RegisterPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsPending(true);
-
+  
     const validated = validateUser(email, password);
-      if (validated.length !== 0) {
-        notify(validated.join(", "), "error");
-        setIsPending(false);
-        return;
-      }
-      
-    try{
+    if (validated.length !== 0) {
+      notify(validated.join(", "), "error");
+      setIsPending(false);
+      return;
+    }
+  
+    try {
       const checkRes = await fetch(`/api/auth/check-email?email=${email}`);
       const checkData = await checkRes.json();
   
-      if (checkData.exists) {
-        notify("Email already exists. Please use a different email.", "error");
+      console.log("checkData", checkData);
+  
+      // ✅ Case 1: Fully registered manually — block
+      if (checkData.exists && checkData.hasProfile) {
+        notify("Email already registered. Please log in instead.", "error");
         return;
       }
-
-      const registerRes = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const registerData = await registerRes.json();
-      if (!registerRes.ok) {
-        notify(registerData.message || "Registration failed.", "error");
+  
+      // ✅ Case 2: Google Auth user, no profile yet — send to setup (no password needed)
+      if (checkData.exists && !checkData.hasProfile && !checkData.hasPassword) {
+        notify("Please complete your profile setup.", "info");
+        router.push("/register/profile-setup");
+        return;
       }
-      
-      router.push("/register/profile-setup");
-    } catch (err){
+  
+      // ✅ Case 3: Manual register started but profile not done — send to finish
+      if (checkData.exists && !checkData.hasProfile && checkData.hasPassword) {
+        notify("Registration incomplete. Please complete your profile setup.", "info");
+        router.push("/register/profile-setup");
+        return;
+      }
+  
+      if (!checkData.exists && !checkData.hasProfile && password !== "") {
+        const registerRes = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+  
+        const registerData = await registerRes.json();
+        
+        await createSession({
+            email: email,
+            username: undefined,
+            role: "User",
+          });
+
+        console.log("registerData", registerRes)
+  
+        if (!registerRes.ok) {
+          notify(registerData.message || "Registration failed.", "error");
+          return;
+        }
+        router.push("/register/profile-setup");
+      }
+  
+    } catch (err) {
       notify("Something went wrong. Please try again.", "error");
-    } finally{
+    } finally {
       setIsPending(false);
     }
   };
