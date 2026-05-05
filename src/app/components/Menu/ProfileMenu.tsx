@@ -13,6 +13,7 @@ import { getSession } from "@/app/actions/auth";
 import { setTheme as setCookieTheme } from "@/app/actions/theme";
 import {sessionData } from "@/types/session"
 import {getUserInfo} from "@/app/actions/user"
+import { notify } from "@/utils/toastHelper";
 
 interface ProfileMenuProps {
   handleLogOut: () => void;
@@ -49,7 +50,6 @@ export const ProfileMenuSkeleton = () => {
 };
 
 const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
-  const [session, setSession] = useState<sessionData | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setThemeState] = useState<Theme>("dark");
@@ -58,9 +58,10 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     const fetchSessionAndData = async () => {
       try {
         const sessionData = await getSession();
-        if (sessionData) setUserData(await getUserInfo(sessionData?.username));
+        if (sessionData) setUserData(await getUserInfo(sessionData.username));
       } catch (error) {
-        console.error("Error fetching session/profile data", error);
+        console.log(error)
+        notify("Error fetching session/profile data", 'error');
       } finally {
         setLoading(false);
       }
@@ -84,6 +85,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     return <ProfileMenuSkeleton />;
   }
 
+  console.log("session", userData)
   return (
     <div className="flex items-center justify-center">
       <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
@@ -91,7 +93,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
         <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="relative mb-4 group">
             <div className="absolute inset-0 bg-green-400 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
-            <Link href={`/profile/${session?.username?.replace(/^@/, '')}`} className="relative block">
+            <Link href={`/profile/${userData?.username?.replace(/^@/, '')}`} className="relative block">
               <div className="rounded-full p-1 bg-gradient-to-tr from-green-400 to-emerald-600">
                 <Image
                   width={80}
@@ -108,7 +110,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
             {userData?.full_name || "Artist Name"}
           </h1>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-            {userData?.credentials?.gmail || session?.email || ""}
+            {userData?.credentials?.gmail || ""}
           </p>
           {userData && (
             <span className="mt-2 text-[9px] font-black text-green-400 border border-green-400/20 px-2 py-0.5 rounded-full uppercase">
