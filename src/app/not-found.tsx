@@ -10,7 +10,6 @@ export default function NotFound() {
       className="min-h-screen flex flex-col items-center justify-center px-6"
       style={{ background: "linear-gradient(135deg, #050a05 0%, #0a140a 50%, #050a05 100%)" }}
     >
-      {/* Grid overlay */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.04]"
         style={{
@@ -20,7 +19,7 @@ export default function NotFound() {
       />
 
       <div className="relative z-10 text-center">
-        {/* 404 */}
+
         <h1
           className="text-[10rem] font-black leading-none tracking-tighter"
           style={{
@@ -32,19 +31,16 @@ export default function NotFound() {
           404
         </h1>
 
-        {/* Divider */}
         <div
           className="w-24 h-px mx-auto my-6"
           style={{ background: "linear-gradient(90deg, transparent, #22c55e, transparent)" }}
         />
 
-        {/* Message */}
         <h2 className="text-2xl font-bold text-white mb-3">Page Not Found</h2>
         <p className="text-sm max-w-xs mx-auto mb-10" style={{ color: "#4b5563" }}>
           Looks like this canvas is empty. The page you're looking for doesn't exist or has been moved.
         </p>
 
-        {/* Buttons */}
         <div className="flex gap-4 justify-center">
           <button
             onClick={() => router.back()}
