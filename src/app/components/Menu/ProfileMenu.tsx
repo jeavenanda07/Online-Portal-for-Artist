@@ -52,7 +52,7 @@ export const ProfileMenuSkeleton = () => {
 const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme | null>(null);
 
   useEffect(() => {
     const fetchSessionAndData = async () => {
@@ -71,10 +71,16 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
   }, []);
 
   useEffect(() => {
+    if (theme === null) return; 
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);
+
+  useEffect(() => {
+    const currentTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
+    setThemeState(currentTheme);
+  }, []);
 
   const handleThemeChange = async (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -85,9 +91,8 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
     return <ProfileMenuSkeleton />;
   }
 
-  console.log("session", userData)
   return (
-    <div className="flex items-center justify-center">
+    <div className=" flex items-center justify-center">
       <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
         
         <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
@@ -127,7 +132,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
 
           {/* THEME SWITCHER */}
           <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-zinc-400">
+            <div className="flex items-center gap-3 ">
               <Sun size={16} />
               <span className="text-xs font-bold uppercase tracking-widest">Theme</span>
             </div>
@@ -140,25 +145,17 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
               />
               <button 
                 onClick={() => handleThemeChange("light")}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'text-black' : 'text-zinc-500'}`}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? '' : ''}`}
               >
                 <Sun size={14} />
               </button>
               <button 
                 onClick={() => handleThemeChange("dark")}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'text-black' : 'text-zinc-500'}`}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? '' : ''}`}
               >
                 <Moon size={14} />
               </button>
             </div>
-          </div>
-
-          <div className="px-4 py-3 flex items-center justify-between group cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
-            <div className="flex items-center gap-3 text-zinc-400">
-              <Monitor size={16} />
-              <span className="text-xs font-bold uppercase tracking-widest">Browsing</span>
-            </div>
-            <span className="text-[10px] font-black text-green-400 bg-green-400/10 px-2 py-0.5 rounded-md">PRO</span>
           </div>
 
           <button
@@ -177,9 +174,9 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
 const MenuLink = ({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) => (
   <Link 
     href={href} 
-    className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/5 transition-all group"
+    className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-secondary transition-all group"
   >
-    <div className="flex items-center gap-3 text-zinc-400 group-hover:text-white transition-colors">
+    <div className="flex items-center gap-3  transition-colors">
       {icon}
       <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
     </div>
