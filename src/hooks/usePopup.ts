@@ -20,9 +20,8 @@ export function usePopup(options?: UsePopupOptions) {
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
-  const toggle = () => setIsOpen((prev) => !prev);
+  const toggle = () => setIsOpen((prev) => prev ? false : true);
 
-  // Close on outside click
   useEffect(() => {
     if (!isOpen || !closeOnOutsideClick) return;
 
@@ -37,7 +36,6 @@ export function usePopup(options?: UsePopupOptions) {
   }, [isOpen, closeOnOutsideClick]);
 
   
-  // Close on ESC
   useEffect(() => {
     if (!isOpen || !closeOnEsc) return;
 

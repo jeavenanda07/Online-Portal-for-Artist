@@ -3,29 +3,28 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LOGGED_IN_USER_ID } from "@/lib/auth";
 
 interface NavLinksProps {
-  userId: string;
+  username: String | undefined;
+  isMyAccount: Boolean;
 }
 
-const NavLinks = ({ userId }: NavLinksProps) => {
+const NavLinks = ({username, isMyAccount} : NavLinksProps) => {
   const pathname = usePathname();
-  const isOwner = LOGGED_IN_USER_ID === userId;
 
   const links = [
-    { name: "Home", href: `/profile/${userId}`, range: "-left-0" },
-    { name: "Gallery", href: `/profile/${userId}/gallery`, range: "left-0"  },
-    { name: "Posts", href: `/profile/${userId}/posts`,range: "-left-1" },
-    { name: "Favorites", href: `/profile/${userId}/favorites`,range: "left-2" },
-    { name: "Shop", href: `/profile/${userId}/shop`,range: "-left-1" },
-    { name: "Appreciation", href: `/profile/${userId}/appreciation`,range: "left-1" },
-    { name: "About", href: `/profile/${userId}/about`,range: "left-0" },
-    { name: "Stats", href: `/profile/${userId}/stats`,range: "left-0" },
+    { name: "Home", href: `/profile/${username}`, range: "-left-0" },
+    { name: "Gallery", href: `/profile/${username}/gallery`, range: "left-0"  },
+    { name: "Posts", href: `/profile/${username}/posts`,range: "-left-1" },
+    { name: "Favorites", href: `/profile/${username}/favorites`,range: "left-2" },
+    { name: "Shop", href: `/profile/${username}/shop`,range: "-left-1" },
+    { name: "Appreciation", href: `/profile/${username}/appreciation`,range: "left-1" },
+    { name: "About", href: `/profile/${username}/about`,range: "left-0" },
+    { name: "Stats", href: `/profile/${username}/stats`,range: "left-0" },
   ];
 
   const visibleLinks = links.filter((item) => {
-    if (!isOwner && item.name === "About") {
+    if (!isMyAccount && item.name === "About") {
       return false; 
     }
     return true;

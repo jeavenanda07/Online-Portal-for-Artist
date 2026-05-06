@@ -9,10 +9,11 @@ import {
   User, ChevronRight, Monitor
 } from "lucide-react";
 
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getSession } from "@/app/actions/auth";
 import { setTheme as setCookieTheme } from "@/app/actions/theme";
-// import {useUser} from "@/hooks/useUser";
+import {sessionData } from "@/types/session"
+import {getUserInfo} from "@/app/actions/user"
+import { notify } from "@/utils/toastHelper";
 
 interface ProfileMenuProps {
   handleLogOut: () => void;
@@ -20,46 +21,89 @@ interface ProfileMenuProps {
 
 type Theme = "light" | "dark";
 
+export const ProfileMenuSkeleton = () => {
+  return (
+    <div className="flex items-center justify-center animate-pulse">
+      <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary/80 backdrop-blur-2xl shadow-2xl">
+        
+        <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5">
+          <div className="w-20 h-20 rounded-full bg-zinc-800 mb-4" />
+          <div className="h-5 w-32 bg-zinc-800 rounded-md mb-2" />
+          <div className="h-3 w-40 bg-zinc-800 rounded-md mb-4" />
+          <div className="h-4 w-16 bg-zinc-800 rounded-full" />
+        </div>
+
+        <div className="p-4 space-y-3">
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          
+          <div className="h-px bg-white/5 my-2 mx-4" />
+
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-12 bg-zinc-800 rounded-2xl" />
+          <div className="h-14 bg-zinc-800 rounded-[1.5rem]" />
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
 const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
-  const [session, setSession] = useState<{ email: string; Role: string } | null>(null);
-  // const { userData, loading } = useUser();
-  const { value: theme, setValue: setLocalTheme } = useLocalStorage<Theme>("theme", "dark");
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [theme, setThemeState] = useState<Theme | null>(null);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const data = await getSession();
-      if (data) setSession(data);
+    const fetchSessionAndData = async () => {
+      try {
+        const sessionData = await getSession();
+        if (sessionData) setUserData(await getUserInfo(sessionData.username));
+      } catch (error) {
+        console.log(error)
+        notify("Error fetching session/profile data", 'error');
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchSession();
+
+    fetchSessionAndData();
   }, []);
 
-
   useEffect(() => {
+    if (theme === null) return; 
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const currentTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
+    setThemeState(currentTheme);
+  }, []);
 
   const handleThemeChange = async (newTheme: Theme) => {
-    setLocalTheme(newTheme);
+    setThemeState(newTheme);
     await setCookieTheme(newTheme);
   };
 
+  if (loading) {
+    return <ProfileMenuSkeleton />;
+  }
+
   return (
-    <div className="flex items-center justify-center">
+    <div className=" flex items-center justify-center">
       <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
         
         <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="relative mb-4 group">
             <div className="absolute inset-0 bg-green-400 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
-            <Link href="/profile" className="relative block">
+            <Link href={`/profile/${userData?.username?.replace(/^@/, '')}`} className="relative block">
               <div className="rounded-full p-1 bg-gradient-to-tr from-green-400 to-emerald-600">
                 <Image
                   width={80}
                   height={80}
-                  // src={!loading && userData?.avatar_url ? userData.avatar_url : "/avatar_placeholder.png"}
-                  src={"/avatar_placeholder.png"}
+                  src={userData?.avatar_pic || "/avatar_placeholder.png"}
                   alt="user profile"
                   className="h-20 w-20 rounded-full bg-primary object-cover border-2 border-black"
                 />
@@ -68,15 +112,14 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
           </div>
 
           <h1 className="text-xl font-heading italic uppercase tracking-tighter">
-            {/* {userData?.full_name || "Artist Name"} */}
-            {"Artist Name"}
+            {userData?.full_name || "Artist Name"}
           </h1>
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-            {/* {userData?.email || ""} */}
+            {userData?.credentials?.gmail || ""}
           </p>
-          {session?.Role && (
+          {userData && (
             <span className="mt-2 text-[9px] font-black text-green-400 border border-green-400/20 px-2 py-0.5 rounded-full uppercase">
-              {session.Role}
+              {userData?.credentials?.role}
             </span>
           )}
         </div>
@@ -89,7 +132,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
 
           {/* THEME SWITCHER */}
           <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-zinc-400">
+            <div className="flex items-center gap-3 ">
               <Sun size={16} />
               <span className="text-xs font-bold uppercase tracking-widest">Theme</span>
             </div>
@@ -102,25 +145,17 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
               />
               <button 
                 onClick={() => handleThemeChange("light")}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'text-black' : 'text-zinc-500'}`}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? '' : ''}`}
               >
                 <Sun size={14} />
               </button>
               <button 
                 onClick={() => handleThemeChange("dark")}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'text-black' : 'text-zinc-500'}`}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? '' : ''}`}
               >
                 <Moon size={14} />
               </button>
             </div>
-          </div>
-
-          <div className="px-4 py-3 flex items-center justify-between group cursor-pointer hover:bg-white/5 rounded-2xl transition-all">
-            <div className="flex items-center gap-3 text-zinc-400">
-              <Monitor size={16} />
-              <span className="text-xs font-bold uppercase tracking-widest">Browsing</span>
-            </div>
-            <span className="text-[10px] font-black text-green-400 bg-green-400/10 px-2 py-0.5 rounded-md">PRO</span>
           </div>
 
           <button
@@ -139,9 +174,9 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
 const MenuLink = ({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) => (
   <Link 
     href={href} 
-    className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/5 transition-all group"
+    className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-secondary transition-all group"
   >
-    <div className="flex items-center gap-3 text-zinc-400 group-hover:text-white transition-colors">
+    <div className="flex items-center gap-3  transition-colors">
       {icon}
       <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
     </div>

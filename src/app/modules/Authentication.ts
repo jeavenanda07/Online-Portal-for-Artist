@@ -1,27 +1,26 @@
 'use server';
-import { createClient } from "@/lib/supabase/server";
-import { notify } from "@/utils/toastHelper";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const Authentication = async (email: string, password: string) => {
-    const supabase = await createClient();
+  try {
+    const credentials = await prisma.credentials.findUnique({
+      where: { gmail: email },
+    });
 
-    // Query the database for a user matching BOTH email and password
-    const { data: user, error } = await supabase
-        .from("Credentials")
-        .select("gmail, role") 
-        .eq("gmail", email)
-        .eq("password", password)
-        .single();
+    if (!credentials) return { status: "no_account" };
 
-    if (error || !user) {
-        notify('Invalid email or password.', 'error');
-        return null;
-    }
+    const isMatch = await bcrypt.compare(password, credentials.password);
+    if (!isMatch) return { status: "wrong_password" };
 
-    if (user) {
-        return {
-            email: user.gmail,
-            role: user.role
-        };
-    }
-}
+    return {
+      status: "success",
+      email: credentials.gmail,
+      role: credentials.role,
+    };
+
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return { status: "error" };
+  }
+};

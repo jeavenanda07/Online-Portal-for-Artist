@@ -2,25 +2,24 @@
 
 import Image from "next/image";
 import { FinalCommissionData } from "@/types/commission";
-import {getGmail} from "@/utils/getUser"
 
 interface Props {
   formData: FinalCommissionData;
   goBack: () => void;
-  submit: () => FinalCommissionData;
+  submit: () => void;
   userId: string;
 }
 
 const Review = ({ formData, goBack, submit, userId }: Props) => {
-  const { tags } = formData;
+  const { tags, title, description, artType, budget, deadline } = formData;
   const images = formData.images ?? [];
 
   const info = [
-    { label: "Art Type", value: formData.artType },
-    { label: "Budget", value: formData.budget },
+    { label: "Art Type", value: artType },
+    { label: "Budget", value: budget },
     {
       label: "Deadline",
-      value: new Date(formData.deadline).toLocaleDateString("en-US"),
+      value: deadline ? new Date(deadline).toLocaleDateString("en-US") : "N/A",
     },
   ];
 
@@ -28,24 +27,11 @@ const Review = ({ formData, goBack, submit, userId }: Props) => {
     <div className="bg-secondary p-6 rounded-md border border-primary-line flex flex-col gap-6">
       {/* HEADER */}
       <div className="flex gap-4">
-        <Image 
-          height={40}
-          width={40}
-          alt={`${formData?.commissionFrom?.username}_profile`}
-          src={formData?.commissionFrom?.profile_picture || ""}
-          className="w-12 h-12 object-cover rounded-full"
-        />
         <div className="flex-1">
           <div className="flex justify-between">
-            <p className="opacity-70 font-bold">
-              {formData?.commissionFrom?.first_name} {formData.commissionFrom?.last_name}
-              <span className="text-sm ml-4 font-semibold opacity-80">{getGmail(userId).ownerGmail}</span>
-            </p>
-            <p className="text-xs opacity-50">{formData.createdAt}</p>
+            <h3 className="text-2xl font-semibold">{title || "Untitled Commission"}</h3>
           </div>
-          <p className="text-xs opacity-50">
-            to <span className="font-semibold">{formData.commissionTo?.first_name} {formData.commissionTo?.last_name}</span>
-          </p>
+          <p className="text-sm opacity-80">{description || "No description provided."}</p>
         </div>
       </div>
 
@@ -65,6 +51,7 @@ const Review = ({ formData, goBack, submit, userId }: Props) => {
                 src={images[0].url}
                 alt="main"
                 fill
+                sizes="(max-width: 768px) 100vw, 40vw"
                 className="object-cover"
               />
             ) : (
@@ -82,6 +69,7 @@ const Review = ({ formData, goBack, submit, userId }: Props) => {
                     src={img.url}
                     alt={`thumb-${i}`}
                     fill
+                    sizes="80px"
                     className="object-cover rounded-md border border-primary-line"
                   />
                 </div>
@@ -92,10 +80,7 @@ const Review = ({ formData, goBack, submit, userId }: Props) => {
 
         {/* DETAILS */}
         <div className="flex-1 flex flex-col gap-3">
-          <h3 className="text-2xl font-semibold">{formData.title}</h3>
-          <p className="text-sm opacity-80">{formData.description}</p>
-
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <p><strong>Tags: </strong></p>
             {tags?.length ? (
               tags?.map((tag) => (
@@ -125,7 +110,10 @@ const Review = ({ formData, goBack, submit, userId }: Props) => {
           Please review your commission details
         </p>
         <div className="flex gap-3">
-          <button onClick={goBack} className="border px-6 py-2 rounded-md text-sm cursor-pointer hover:opacity-80 transition-all">
+          <button 
+            onClick={goBack} 
+            className="border px-6 py-2 rounded-md text-sm cursor-pointer hover:opacity-80 transition-all"
+          >
             Go Back
           </button>
           <button

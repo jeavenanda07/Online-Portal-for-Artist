@@ -1,15 +1,13 @@
-"use client";
-// import clsx from 'clsx';
-
 import ArtList from "../shared/ArtList";
 import { BsSearch } from 'react-icons/bs';
 import { ImSpinner2 } from "react-icons/im";
 import artworks from "@/data/artwork.json"
 import Link from "next/link";
+
 import SearchHeader from '../ui/SearchHeader';
 
 
-const ExploreLayout = () => {
+const ExploreLayout = async () => {
   return (
     <div className="flex flex-col gap-4 relative mt-10">
       <div className='fixed top-12 md:left-5 md:right-5 z-20 left-2 right-2 bg-background py-5 pt-10'>

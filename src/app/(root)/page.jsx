@@ -4,9 +4,8 @@ import { getSession } from "@/app/actions/auth";
 
 const Page = async () => {
   const session = await getSession();
-  console.log("Session in Page Component:", session)
   return (
-    <main className="mt-10">
+    <main className="">
       {session ? (
         <HomepageAfter />
       ) : (
