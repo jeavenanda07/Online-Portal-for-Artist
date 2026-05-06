@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import {ModalProps} from "@/types/modal"
 
 
-
 const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
   if (!isOpen) return null;
 
