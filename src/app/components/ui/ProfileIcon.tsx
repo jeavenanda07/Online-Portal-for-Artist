@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getUserInfo } from "@/app/actions/user";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface Props {
   username?: string | undefined;
@@ -23,9 +24,7 @@ const ProfileIcon = ({ username, email }: Props) => {
 
       try {
         const data = await getUserInfo(username);
-        // Assuming your user data object contains the avatar_pic field
         setProfile(data?.avatar_pic || "/avatar_placeholder.png");
-        console.log("hello", data)
       } catch (error) {
         setProfile("/avatar_placeholder.png");
       } finally {
@@ -36,6 +35,8 @@ const ProfileIcon = ({ username, email }: Props) => {
     fetchUserData();
   }, [username]);
 
+  console.log("My Profile", profile);
+
   return (
     <Link
       href={`/profile/${username || ""}`}
@@ -45,10 +46,12 @@ const ProfileIcon = ({ username, email }: Props) => {
         {loading ? (
           <div className="h-full w-full bg-zinc-800 animate-pulse rounded-full" />
         ) : (
-          <img
+          <Image
+            width={30}
+            height={30}
             className="object-cover h-full w-full rounded-full border-2 border-primary-line"
             src={profile || "/avatar_placeholder.png"}
-            alt="User profile"
+            alt={`user_profile`}
           />
         )}
       </div>
