@@ -1,102 +1,131 @@
+'use client';
+
 import clsx from 'clsx';
-import { MdArrowForwardIos } from "react-icons/md";
-import jsonData from "@/data/reportedUser.json"
-import DatePicker from '@/app/components/ui/DatePicker';
-import { div } from 'framer-motion/client';
 import Link from 'next/link';
 import { RiArrowRightSLine } from "react-icons/ri";
-
-type ReportedItem = {
-  id: string;
-  user: string;
-  gmail: string;
-  profileIcon: string;
-  reportDate: string;
-  reportedBy: string;
-  reason: string;
-  action: string;
-  status: string;
-};
-
+import jsonData from "@/data/reportedUser.json";
+import DatePicker from '@/app/components/ui/DatePicker';
 
 const ReportedUserSummary = () => {
   return (
-   <div className=''>
-       <div className="flex font-semibold mb-10">
-        <h1 className="text-2xl font-semibold">Report Management</h1>
+    <div className="min-h-screen text-[#eeeeee] p-8 font-sans ">
 
-        <div className="flex gap-4 items-center ml-auto">
-          <p className="opacity-70"><Link href="/dashboard">Home</Link></p>
-          <RiArrowRightSLine className="opacity-70"/>
-          <p>Reported Users</p>
+      <div className="flex justify-between items-end mb-10 px-2">
+        <div>
+          <div className="flex items-center gap-2 text-[11px] font-black text-[#64748b] uppercase tracking-[0.25em] mb-2">
+            <Link href="/dashboard" className="hover:text-[#4ade80] transition-colors">Home</Link>
+            <RiArrowRightSLine className="text-lg text-[#334155]" />
+            <span className="text-white border-b-2 border-[#4ade80]">Reported Users</span>
+          </div>
+          <h1 className="text-4xl font-black tracking-tight text-white">Reported Users</h1>
         </div>
       </div>
-    <div className="w-full bg-primary py-10 px-10 rounded-md">
-          <div className="flex justify-between items-center px-2 mb-4 ">
-            <div>
-                <h5 className='text-2xl '>Latest list of reported users</h5>
-                <p>32 items</p>
-            </div>
 
-              <DatePicker />
+      <div className="w-full bg-background border-2 border-[#1e293b] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+
+        <div className="flex justify-between items-center px-8 py-8 border-b-2 border-[#1e293b] bg-[#0f172a]/30">
+          <div>
+            <h2 className="text-[13px] font-black text-[#94a3b8] uppercase tracking-[0.3em]">Latest List of Reported Users</h2>
+            <p className="text-[16px] text-[#4ade80] font-black mt-1 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-[#f87171] rounded-full animate-pulse"></span>
+              {jsonData.length} TOTAL REPORTS DETECTED
+            </p>
           </div>
-    
-          <table className="bg-secondary p-4 w-full border-collapse overflow-hidden rounded-xl">
-            <thead className="text-left rounded-t-md border-b-1 border-b-primary-line">
-              <tr>
-                <th  className="p-4 text-center">Report Id</th>
-                <th  className="p-4 text-center">User</th>
-                <th  className="p-4 text-center">Report by</th>
-                <th  className="p-4 text-center">Reported Date</th>
-                <th  className="p-4 text-center">Reason</th>
-                <th  className="p-4 text-center">Status</th>
-                <th  className="p-4 text-center">Take Action</th>
+          <div className="scale-110">
+            <DatePicker />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left min-w-[1100px]">
+            <thead>
+              <tr className="bg-[#1e293b] text-[12px] uppercase tracking-[0.2em] text-[#f1f5f9]">
+                <th className="px-8 py-6 font-black text-center">Report ID</th>
+                <th className="px-8 py-6 font-black">User</th>
+                <th className="px-8 py-6 font-black">Reported By</th>
+                <th className="px-8 py-6 font-black text-center">Date</th>
+                <th className="px-8 py-6 font-black text-center">Status</th>
+                <th className="px-8 py-6 font-black text-right">Action</th>
               </tr>
             </thead>
-    
-            <tbody className="">
-              {jsonData.slice(0, 10).map((u) => (
-                <tr className="" key={u.id}>
-                  <td className="p-4 text-center">{u.id}</td>
-                  <td  className="p-4 text-center">
-                      <div className="flex gap-4 text-left ">
-                        <img src={u.profileIcon} alt="profile icon" className="w-12 h-12 rounded-full"/>
+
+            <tbody className="divide-y-2 divide-[#1e293b]">
+              {jsonData.slice(0, 10).map((u: any) => {
+
+                const currentStatus = u.status?.toLowerCase();
+
+                return (
+                  <tr key={u.id} className="group hover:bg-[#0f172a] transition-all duration-150">
+
+                    <td className="px-8 py-6 font-mono text-[12px] text-center text-[#60a5fa] font-bold">
+                      <span className="bg-[#60a5fa]/10 px-2 py-1 rounded border border-[#60a5fa]/20">
+                        #{u.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </td>
+
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={u.profileIcon}
+                          className="w-11 h-11 rounded-full border-2 border-[#334155] group-hover:border-[#4ade80] transition-all"
+                          alt="avatar"
+                        />
                         <div>
-                          <p>{u.user}</p>
-                          <p className="opacity-50 -mt-2">{u.gmail}</p>
+                          <p className="text-[16px] font-black text-white leading-none mb-1 group-hover:text-[#4ade80]">
+                            {u.user}
+                          </p>
+                          <p className="text-[11px] text-[#94a3b8] font-bold uppercase tracking-wider">{u.gmail}</p>
                         </div>
                       </div>
-                  </td>
+                    </td>
 
-                  <td  className="p-4 text-center">
-                      <div className="flex gap-4 text-left ">
-                        <img src={u.profileIcon} alt="profile icon" className="w-12 h-12 rounded-full"/>
-                        <div>
-                          <p>{u.user}</p>
-                          <p className="opacity-50 -mt-2">{u.gmail}</p>
-                        </div>
+                    <td className="px-8 py-6">
+                      <span className="text-[14px] text-slate-300 font-normal tracking-wide italic">
+                        {u.reportedBy}
+                      </span>
+                    </td>
 
-                      </div>
-                  </td>
+                    <td className="px-8 py-6 text-center text-[12px] text-slate-400 font-mono font-normal">
+                      {u.reportDate}
+                    </td>
 
-                  <td  className="p-4 text-center">{u.reportDate}</td>
-                  <td  className="p-4 text-center">{u.reason}</td>
-                  <td  className="p-4 text-center">
-                    <p className={clsx('rounded-full font-semibold text-sm py-1', {
-                      "bg-orange-600 text-orange-300" : u.status == "pending",
-                      "bg-red-600 text-red-300" : u.status == "warned"
-                    })}>{u.status}</p>
-                  </td>
-                  
-                  <td  className=" text-center">Action</td>
-                </tr>
-              ))}
+
+                    <td className="px-8 py-6 text-center">
+                      <span className={clsx(
+                        "px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest inline-block border-2 min-w-[150px]",
+                        {
+
+                          "bg-[#3d1d05] text-[#fb923c] border-[#7c2d12]": currentStatus === "pending",
+
+                          "bg-[#450a0a] text-[#fca5a5] border-[#7f1d1d]": currentStatus === "warned" || currentStatus === "flagged",
+
+                          "bg-[#064e3b] text-[#4ade80] border-[#065f46]": currentStatus === "success" || currentStatus === "cleared"
+                        }
+                      )}>
+                        {u.status}
+                      </span>
+                    </td>
+
+                    <td className="px-8 py-6 text-right">
+                      <button className="text-[10px] font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-all border bg-[#0a0a0a] text-[#58d68d] border-[#58d68d]/30 hover:bg-[#58d68d] hover:text-[#090e0e]">
+                        Take Action
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-      </div>
-   </div>
- 
-  )
-}
+        </div>
 
-export default ReportedUserSummary
+        <div className="p-6 bg-[#0f172a]/50 border-t-2 border-[#1e293b] text-center">
+          <p className="text-[11px] font-black text-[#2e4053] uppercase tracking-[0.5em]">
+            — End of Security List —
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportedUserSummary;

@@ -1,97 +1,135 @@
-"use client"
-
-
+"use client";
 
 interface FeaturedArtFormProps {
-  func: () => void; 
+  func: () => void;
 }
 
-const FeaturedArtForm = ({func} : FeaturedArtFormProps) => {
+const FeaturedArtForm = ({ func }: FeaturedArtFormProps) => {
   return (
-    <div className="p-5 border-1 border-primary-line rounded-md w-150 mx-auto bg-primary z-20 fixed top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
-      <div>
-        <form className="flex flex-col gap-8">
-          <h4 className="text-2xl font-semibold mb-4">Create new artwork to featured</h4>
+    
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="w-[600px] max-h-[90vh] overflow-y-auto bg-primary border border-[#1a2e1a]
+        rounded-2xl shadow-2xl shadow-black/80">
+
+        
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#1a2e1a]">
+          <div>
+            <h4 className="text-base font-semibold text-[#c8e6c8]">Feature an Artwork</h4>
+            <p className="text-xs text-[#3a5c3a] mt-0.5">Promote artwork on the homepage</p>
+          </div>
+          <button
+            onClick={func}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#4a6a4a]
+              hover:bg-background hover:text-[#c8e6c8] transition-all text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+       
+        <div className="px-6 py-6 flex flex-col gap-5">
           
-          <div className="w-full flex flex-col gap-4">
-            <label htmlFor="ArtworkID">
-              Enter the artwork ID
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-[#6b8f6b] uppercase tracking-wider">
+              Artwork ID <span className="text-[#ff6b6b]">*</span>
             </label>
             <input
-              className="flex w-full p-4 bg-secondary"
-              type="Enter the artwork ID"
+              type="text"
               name="ArtworkID"
               required
-              id="ArtworkID"
+              placeholder="e.g. art_a1b2c3d4"
+              className="w-full px-4 py-3 bg-background border border-[#1a2e1a] rounded-xl
+                text-sm text-[#c8e6c8] placeholder:text-[#2a4a2a]
+                focus:outline-none focus:border-[#39ff6a]/50 focus:ring-1 focus:ring-[#39ff6a]/20
+                transition-all"
             />
           </div>
 
-          <div className="w-full flex flex-col gap-3">
-            <label htmlFor="FeaturedTitle">
-              Featured title (optional)
+          {/* Featured Title */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-[#6b8f6b] uppercase tracking-wider">
+              Featured Title
+              <span className="ml-1.5 text-[#2a4a2a] normal-case tracking-normal">(optional)</span>
             </label>
             <input
-              className="flex w-full p-4 bg-secondary"
-              type="Featured title (optional)"
+              type="text"
               name="FeaturedTitle"
-              id="FeaturedTitle"
+              placeholder="e.g. Artist Spotlight — May 2024"
+              className="w-full px-4 py-3 bg-background border border-[#1a2e1a] rounded-xl
+                text-sm text-[#c8e6c8] placeholder:text-[#2a4a2a]
+                focus:outline-none focus:border-[#39ff6a]/50 focus:ring-1 focus:ring-[#39ff6a]/20
+                transition-all"
             />
           </div>
 
+          {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="w-full flex flex-col gap-3">
-
-              <label htmlFor="FeaturedStartAt">
-                Featured start at
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-[#6b8f6b] uppercase tracking-wider">
+                Start Date <span className="text-[#ff6b6b]">*</span>
               </label>
               <input
-                className="flex p-4 w-full opacity-50 bg-secondary"
                 type="date"
                 required
-                id="FeaturedStartAt"
+                className="w-full px-4 py-3 bg-background border border-[#1a2e1a] rounded-xl
+                  text-sm text-[#c8e6c8]
+                  focus:outline-none focus:border-[#39ff6a]/50 focus:ring-1 focus:ring-[#39ff6a]/20
+                  transition-all [color-scheme:dark]"
               />
             </div>
-
-            <div className="w-full flex flex-col gap-3">
-              <label htmlFor="FeaturedEndsAt">
-                Featured ends at
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-[#6b8f6b] uppercase tracking-wider">
+                End Date <span className="text-[#ff6b6b]">*</span>
               </label>
               <input
-                className="flex p-4 w-full opacity-50 bg-secondary"
                 type="date"
                 required
-                id="FeaturedEndsAt"
-              />
-            </div>
-
-            <div className="w-full col-span-2 flex flex-col gap-3 mt-4">
-              <label htmlFor="FeaturedTitle">
-                Featured title (optional)
-              </label>
-              <textarea
-                className="flex w-full p-4 bg-secondary"
-                name="FeaturedTitle"
-                placeholder="Description"
-                required
-                id="FeaturedTitle"
+                className="w-full px-4 py-3 bg-background border border-[#1a2e1a] rounded-xl
+                  text-sm text-[#c8e6c8]
+                  focus:outline-none focus:border-[#39ff6a]/50 focus:ring-1 focus:ring-[#39ff6a]/20
+                  transition-all [color-scheme:dark]"
               />
             </div>
           </div>
-          <div className="flex gap-8 mt-4 justify-end">
-            <button 
-              onClick={func}
-              type="button"
-              className="px-12 py-3 rounded-md cursor-pointer">
-              Cancel
-            </button>
 
-            <button 
-              onClick={func}
-              className=" px-12 py-3 rounded-md bg-white text-black cursor-pointer">
-              Save
-            </button>
+          {/* Description */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-[#6b8f6b] uppercase tracking-wider">
+              Description <span className="text-[#ff6b6b]">*</span>
+            </label>
+            <textarea
+              name="Description"
+              required
+              rows={4}
+              placeholder="Describe why this artwork is being featured..."
+              className="w-full px-4 py-3 bg-background border border-[#1a2e1a] rounded-xl
+                text-sm text-[#c8e6c8] placeholder:text-[#2a4a2a] resize-none
+                focus:outline-none focus:border-[#39ff6a]/50 focus:ring-1 focus:ring-[#39ff6a]/20
+                transition-all"
+            />
           </div>
-        </form>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#1a2e1a]">
+          <button
+            type="button"
+            onClick={func}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium text-[#6b8f6b]
+              hover:bg-[#0d1a0d] hover:text-[#c8e6c8] border border-[#1a2e1a]
+              hover:border-[#2a4a2a] transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold
+              bg-[#39ff6a] text-[#050905] hover:bg-[#5aff80]
+              transition-all shadow-lg shadow-[#39ff6a]/20"
+          >
+            Save & Publish
+          </button>
+        </div>
       </div>
     </div>
   );
