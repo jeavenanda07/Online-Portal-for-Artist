@@ -14,7 +14,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.post.delete({
-      where: { post_id: postId }, // Assumes the primary key is 'id'. Adjust if 'post_id' is used.
+      where: { post_id: postId },
     });
 
     return NextResponse.json(

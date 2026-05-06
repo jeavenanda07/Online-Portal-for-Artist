@@ -15,13 +15,8 @@
     "@imagekit/next": "^2.1.5",
     "@mui/material": "^7.3.5",
     "@mui/x-date-pickers": "^8.18.0",
-<<<<<<< HEAD
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
-=======
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
->>>>>>> ecf4eec3ae7b58b8c47dba243bed9357a4e427fb
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "@tailwindcss/vite": "^4.1.14",
