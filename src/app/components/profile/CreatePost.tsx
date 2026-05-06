@@ -119,7 +119,6 @@ const CreatePost = ({ setPosts, onClose }: CreatePostProps) => {
         ...prevPosts,
       ]);
 
-      // 4. Reset form
       post.media.forEach((item) => URL.revokeObjectURL(item.preview));
       setPost({ content: "", media: [], visibility: "public" });
       notify("Post published!", "success");
