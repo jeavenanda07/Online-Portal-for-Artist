@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUserData } from "./useUserData"; // Your existing custom hook
-import {getMyPosts} from "@/app/actions/post"; // Path to your Server Action
+import { useUserData } from "./useUserData";
+import { getMyPosts } from "@/app/actions/post";
 
 export function useMyPosts() {
   const { userDetails, loading: userLoading } = useUserData();
@@ -20,9 +20,7 @@ export function useMyPosts() {
       try {
         setLoading(true);
         setError(null);
-        
         const data = await getMyPosts(userDetails.user_profile_id);
-        console.log("my post", data)
         setPosts(data);
       } catch (err) {
         setError("Failed to load posts.");
@@ -35,5 +33,6 @@ export function useMyPosts() {
     loadPosts();
   }, [userDetails, userLoading]);
 
-  return { posts, loading, error };
+  // Return setPosts so it can be updated from other components
+  return { posts, setPosts, loading, error };
 }

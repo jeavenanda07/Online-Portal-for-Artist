@@ -71,7 +71,7 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed bg-primary top-0 left-0 w-full h-16 z-[100] flex items-center justify-between border-b-1 border-slate-200 px-6 lg:px-14"
+        className="fixed bg-primary top-0 left-0 w-full h-16 z-[100] flex items-center justify-between border-b-1 border-primary-line px-6 lg:px-14"
         style={{
           backdropFilter: "blur(20px)",
         }}

@@ -21,3 +21,4 @@ export async function getMyPosts(userProfileId: string | undefined) {
     throw new Error("Could not fetch posts");
   }
 }
+

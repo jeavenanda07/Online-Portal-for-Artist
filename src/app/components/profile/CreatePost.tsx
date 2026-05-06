@@ -7,7 +7,12 @@ import Image from "next/image";
 import { uploadMedia } from "@/utils/uploadMedia";
 import { notify } from "@/utils/toastHelper";
 
-const CreatePost = () => {
+interface CreatePostProps {
+  setPosts: React.Dispatch<React.SetStateAction<any[]>>;
+  onClose: () => void;
+}
+
+const CreatePost = ({ setPosts, onClose }: CreatePostProps) => {
   const [post, setPost] = useState<{
     content: string;
     media: { file: File; preview: string }[];
@@ -68,8 +73,12 @@ const CreatePost = () => {
       // 1. Upload all media files to Supabase Storage
       const uploadedUrls: string[] = [];
 
+      console.log("Uploading files to storage...", post.media);
+
       for (const item of post.media) {
         const url = await uploadMedia(item.file, userDetails.user_profile_id);
+
+        console.log("url", url)
         if (!url) {
           notify("One or more images failed to upload.", "error");
           setIsSubmitting(false);
@@ -91,17 +100,33 @@ const CreatePost = () => {
       });
 
       const data = await res.json();
+      console.log("posting data", res);
 
       if (!res.ok) {
         notify(data.message || "Failed to create post.", "error");
         return;
       }
 
-      // 3. Reset form
+      // 3. Update the state immediately for real-time reflection in the feed
+      const newPostFromDb = data.post || data; // fallback depending on your API response structure
+      
+      setPosts((prevPosts) => [
+        {
+          ...newPostFromDb,
+          author: userDetails, // Ensures the relation data is populated for rendering
+          date_posted: new Date(),
+        },
+        ...prevPosts,
+      ]);
+
+      // 4. Reset form
       post.media.forEach((item) => URL.revokeObjectURL(item.preview));
       setPost({ content: "", media: [], visibility: "public" });
       notify("Post published!", "success");
 
+      setTimeout(() => {
+        onClose();
+      }, 1500)
     } catch (err) {
       console.error(err);
       notify("Something went wrong.", "error");
