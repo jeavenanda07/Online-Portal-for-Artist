@@ -11,12 +11,11 @@ import { usePopup } from '@/hooks/usePopup';
 import ModalPortal from '../shared/ModalPortal';
 
 interface NavLinksProps {
-    userId: string;
+    username: String | undefined;
+    isMyAccount: Boolean;
 }
 
-const ButtonSubmission = ({userId}: NavLinksProps) => {
- const isOwner = LOGGED_IN_USER_ID == userId;
-
+const ButtonSubmission = ({username, isMyAccount} : NavLinksProps) => {
  const commissionPopup = usePopup({
     closeOnEsc: true,
     closeOnOutsideClick: true,
@@ -26,7 +25,7 @@ const ButtonSubmission = ({userId}: NavLinksProps) => {
   return (
     <div>
         {
-        !isOwner && 
+        !isMyAccount && 
             <div className="flex gap-4 items-center">
             <Menu />
             <button className="flex bg-white px-4 py-2 text-nowrap items-center text-black rounded-md gap-2 cursor-pointer hover:opacity-80 transition duration-200 ease-in-out hover:scale-102">
@@ -51,7 +50,7 @@ const ButtonSubmission = ({userId}: NavLinksProps) => {
             {/* Modal */}
             <ModalPortal>
                 <div ref={commissionPopup.ref}>
-                    <CommissionForm func={commissionPopup.close} userId={userId} />
+                    {/* <CommissionForm func={commissionPopup.close} username={username} /> */}
                 </div>
 
                 {/* Backdrop */}

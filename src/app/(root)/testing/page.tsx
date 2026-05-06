@@ -1,8 +1,11 @@
-import { getArtistCredentials } from "@/app/actions/user";
+import { getArtistCredentials, checkEmailExists } from "@/app/actions/user";
+
 
 export default async function CredentialsList() {
   const users = await getArtistCredentials();
+  const emailToCheck = await checkEmailExists("jeavenanda0@gmail.com");
 
+  console.log("Email existence check for CredentialsList:", emailToCheck);
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Artist Credentials</h2>

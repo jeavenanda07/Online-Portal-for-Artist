@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { TfiEmail } from "react-icons/tfi";
 import { CiLock } from "react-icons/ci";
-
 import Logo from "@/app/components/ui/Logo";
 import { validateUser } from "@/utils/validator";
 import { notify } from "@/utils/toastHelper";
@@ -55,9 +54,10 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}`, 
+        redirectTo: `${window.location.origin}/login/check-signin`, 
       },
     });
+
     if (error) {
       notify(error.message, "error");
     }
@@ -66,45 +66,66 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsPending(true);
-
+  
     const validated = validateUser(email, password);
     if (validated.length !== 0) {
       notify(validated.join(", "), "error");
       setIsPending(false);
       return;
     }
-
+  
     try {
       const authUser = await Authentication(email.trim(), password.trim());
-
-      if (!authUser) {
-        notify("Invalid email or password", "error");
-        setIsPending(false);
+      console.log("Auth user", authUser)
+  
+      if (authUser.status === "no_account") {
+        notify("No account found with that email.", "error");
+        return;
+      }
+  
+      if (authUser.status === "wrong_password") {
+        notify("Incorrect password. Please try again.", "error");
+        return;
+      }
+  
+      if (authUser.status === "error") {
+        notify("An error occurred during login.", "error");
         return;
       }
 
-      const role = authUser.role.toLowerCase();
-
-      if (role === "admin") {
-        await createSession({ email: authUser.email, role: "Admin" });
+      console.log("Connected", authUser);
+  
+      // Check if profile setup is complete
+      const checkRes = await fetch(`/api/auth/check-email?email=${email.trim()}`);
+      const checkData = await checkRes.json();
+  
+      if (!checkData.hasProfile) {
+        notify("Please complete your profile setup first.", "info");
+        // router.push("/register/profile-setup");
+        return;
+      }
+  
+      // const role = authUser.role!.toLowerCase();
+  
+      if (authUser.role === "Admin") {
+        await createSession({ email: authUser.email!, username: undefined, role: "Admin" });
         notify("Welcome back, Administrator", "success");
         router.push("/dashboard");
-      } else if (role === "user") {
-        await createSession({ email: authUser.email, role: "User" });
-        setData("token", true); 
-        notify("Login successful!", "success");
+      } else if (authUser.role === "User") {
+        await createSession({ email: authUser.email!,  username: undefined, role: "User" });
+        notify("Welcome back to ArtistryHub", "success");
         router.push("/");
       } else {
-        notify("Account role not recognized", "error");
+        notify("Account role not recognized.", "error");
       }
+  
     } catch (error) {
-      notify("An error occurred during login", "error");
+      notify("An error occurred during login.", "error");
       console.error(error);
     } finally {
       setIsPending(false);
     }
   };
-
 
   if (isCheckingAuth) {
     return (

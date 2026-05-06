@@ -28,13 +28,13 @@ const CreateGalleryModal = ({ isOpen, onClose, onCreate }: Props) => {
         if (!form.title.trim()) return notify("Gallery title is required", "error");
       
         const existingGalleries = getData<CreateGalleryData>("gallery") || [];
-        const titleExists = existingGalleries.some(
-            (gallery) => gallery.title.toLowerCase() === form.title.trim().toLowerCase()
-        );
+        // const titleExists = existingGalleries.some(
+        //     (gallery) => gallery.title.toLowerCase() === form.title.trim().toLowerCase()
+        // );
       
-        if (titleExists) {
-            return notify("Title is already exist", "error");
-        }
+        // if (titleExists) {
+        //     return notify("Title is already exist", "error");
+        // }
 
         const updatedGalleries = Array.isArray(existingGalleries) 
           ? [...existingGalleries, form] 

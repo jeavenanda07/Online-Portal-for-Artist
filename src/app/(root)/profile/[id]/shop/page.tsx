@@ -1,13 +1,12 @@
 'use client';
-import ShopCard from "@/app/components/profile/shop/ShopCard";
+// import ShopCard from "@/app/components/profile/shop/ShopCard";
 import CreateArtwork from "@/app/components/profile/CreateArtwork";
 import Modal from "@/app/components/ui/Modal";
 import { useState } from "react";
 import { FaRegStar } from "react-icons/fa";
 
 const ShopPage = () => {
-    const [isCreateOpen, setIsCreateOpen] = useState(false);
-
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
     <div>

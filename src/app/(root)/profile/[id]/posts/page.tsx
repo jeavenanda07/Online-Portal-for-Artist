@@ -12,15 +12,14 @@ const PostPage = () => {
 
   return (
     <div className="-mt-10">
-      {/* Create Post Modal */}
-      <Modal
+
+      {/* <Modal
         isOpen={isPosting}
         onClose={() => setIsPosting(false)}
         className="w-full max-w-[550px] p-4" // Centered box width
       >
-        {/* Pass onClose to CreatePost so it can close the modal after posting */}
-        <CreatePost onClose={() => setIsPosting(false)} />
-      </Modal>
+       
+      </Modal> */}
 
       <div className="flex flex-col justify-center py-10">
         <div className="flex gap-10 text-left w-full mb-4 max-w-screen-xl text-lg font-semibold mx-auto translate-x-[7.4em]">
@@ -34,7 +33,7 @@ const PostPage = () => {
         <div className="w-[800px] mx-auto">
           {/* Trigger Div */}
           <div className="border border-primary-line items-center p-4 flex justify-center bg-primary rounded-md">
-            <ProfileIcon />
+            {/* <ProfileIcon /> */}
             <div
               onClick={() => setIsPosting(true)}
               className="border border-primary-line rounded-md bg-primary w-[90%] py-4 ml-4 px-4 cursor-pointer hover:brightness-110 transition-all"
@@ -51,7 +50,7 @@ const PostPage = () => {
           <div className="border border-primary-line h-[630px] bg-primary mx-auto p-4 rounded-md">
             <div className="flex justify-between items-center">
               <div className="flex gap-4">
-                <ProfileIcon />
+                {/* <ProfileIcon /> */}
                 <div>
                   <p className="bold">ChristianJay69</p>
                   <p className="text-sm opacity-50">3 days ago</p>

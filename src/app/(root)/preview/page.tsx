@@ -60,7 +60,7 @@ const ArtPreview = () => {
 
 
             <div className='flex items-center gap-4 w-full'>
-              <ProfileIcon />
+              {/* <ProfileIcon /> */}
 
               <div className='flex items-center justify-between w-full'>
                   <div className='flex items-center gap-4'>
@@ -78,9 +78,9 @@ const ArtPreview = () => {
               </div>
 
             <div className='flex gap-4 my-4'>
+                {/* <ArtTypeCard />
                 <ArtTypeCard />
-                <ArtTypeCard />
-                <ArtTypeCard />
+                <ArtTypeCard /> */}
             </div>
 
             <hr className='text-primary-line'/>
@@ -90,9 +90,9 @@ const ArtPreview = () => {
 
         <div className='my-4'>
           <div className='flex flex-col gap-8'>
+            {/* <Comments />
             <Comments />
-            <Comments />
-            <Comments />
+            <Comments /> */}
           </div>
         </div>
 
@@ -101,7 +101,7 @@ const ArtPreview = () => {
       </div>
 
       <div className='md:w-[20%]'>
-        <Sidebar />
+        {/* <Sidebar /> */}
       </div>
     </div>
   )

@@ -44,9 +44,9 @@ const FeauturedArt = () => {
         <h2>Featured Art of the Week</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 3xl:grid-cols-6 gap-x-8 gap-y-14 mt-4">
-          {artListObj.map((art) => (
-            <ArtList art={art} key={art.src} />
-          ))}
+        {/* {artListObj.map((art) => (
+          <ArtList art={art} key={art.src} />
+        ))} */}
         </div>
 
 

@@ -11,20 +11,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
 
 model Credentials {
-  user_id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   gmail          String   @unique
   password       String
   created_at     DateTime @default(now())
-  is_logged_in     Boolean  @default(false)
+  is_logged_in   Boolean  @default(false)
   last_signin_at DateTime @updatedAt
   role           String   @default("User")
   is_remembered  Boolean  @default(false)
 
   user_profile UserProfile?
 }
-
 
 enum Gender {
   MALE
@@ -34,27 +37,27 @@ enum Gender {
 }
 
 model UserProfile {
-  user_profile_id  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_profile_id  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   
-  // Foreign Key linking to Credentials
-  credentials_id   String    @unique @db.Uuid
+  credentials_id   String      @unique @db.Uuid
   credentials      Credentials @relation(fields: [credentials_id], references: [user_id], onDelete: Cascade)
 
   full_name        String
-  username         String    @unique
-  avatar_pic       String?   // Optional URL
-  background_cover String?   // Optional URL
-  specialization   String?   // e.g., "Digital Illustrator"
-  gender           Gender    @default(PREFER_NOT_TO_SAY)
-  is_open_for_hire Boolean   @default(false)
+  username         String      @unique
+  avatar_pic       String?
+  background_cover String?
+  specialization   String?
+  gender           Gender      @default(PREFER_NOT_TO_SAY)
+  is_open_for_hire Boolean     @default(false)
   birthdate        DateTime?
   contact          String?
-  about_me         String?   @db.Text
-  social_links     Json?     // Stores an object of links (FB, IG, etc.)
-  display_location String?   // e.g., "Atimonan, Quezon"
+  about_me         String?     @db.Text
+  social_links     Json?
+  display_location String?
 
-  updated_at       DateTime  @updatedAt
+  updated_at       DateTime    @updatedAt
   posts            Post[]
+  artworks         Artwork[]
 }
 
 enum Visibility {
@@ -64,13 +67,65 @@ enum Visibility {
 }
 
 model Post {
-  post_id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_profile_id String     @db.Uuid
-  content         String     @db.VarChar(500)
-  media           String[]   // Array of image URLs
-  visibility      Visibility @default(public)
-  date_posted     DateTime   @default(now())
-  last_updated    DateTime   @updatedAt
+  post_id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_profile_id String      @db.Uuid
+  content         String      @db.VarChar(500)
+  media           String[]    // Array of image URLs
+  visibility      Visibility  @default(public)
+  date_posted     DateTime    @default(now())
+  last_updated    DateTime    @updatedAt
 
   author          UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+
+  // comments        Comment[]   @relation("PostComments")
 }
+
+model Artwork {
+  artwork_id      String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Foreign key to UserProfile
+  user_profile_id String      @db.Uuid
+  user_profile    UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+
+  art_file        String
+  artwork_title   String
+  description     String?     @db.Text
+  artwork_type    String      // Can also be converted into an Enum (e.g., "Digital", "Traditional")
+  tags            String[]
+  status          String      // Can be updated to an Enum (e.g., For Sale, Draft)
+  price           Float       // Alternatively, you can use Decimal for higher precision currency
+  stocks          Int         @default(0)
+  sold            Int         @default(0)
+  gallery_id      String?     @db.Uuid
+  likes_count     Int         @default(0)
+
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  // comments        Comment[]   @relation("ArtworkComments")
+}
+
+// model Comment {
+//   id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+//   // Relations to User Profiles
+//   commentedById   String      @db.Uuid
+//   commentedBy     UserProfile @relation("UserComments", fields: [commentedById], references: [user_profile_id], onDelete: Cascade)
+
+//   commentedToId   String      @db.Uuid
+//   commentedTo     UserProfile @relation("UserReceivedComments", fields: [commentedToId], references: [user_profile_id], onDelete: Cascade)
+
+//   // Optional relations depending on whether it's an Artwork or a Post
+//   postId          String?     @db.Uuid 
+//   post            Post?       @relation(fields: [postId], references: [post_id], onDelete: Cascade)
+
+//   artworkId       String?     @db.Uuid
+//   artwork         Artwork?    @relation(fields: [artworkId], references: [artwork_id], onDelete: Cascade)
+
+//   // Comment content
+//   commentText     String      @db.Text
+  
+//   // Timestamps and edits
+//   lastEdited      DateTime?   @updatedAt
+//   created_at      DateTime    @default(now())
+// }

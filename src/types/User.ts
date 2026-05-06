@@ -118,21 +118,21 @@ export interface ShippingAddress {
 
 // Main User Profile
 export interface UserProfile {
-  id: string;
-  account_id: string;
-  first_name: string;
-  last_name: string;
+  user_profile_id: string;
+  credentials_id: string;
+  full_name: string;
   username: string;
-  profile_picture: string;
-  background_cover: string;
-  gender: "Male" | "Female" | "Other";
-  birthdate: string; // ISO date string
-  address: Address;
-  contact: Contact;
-  about_me: string;
-  link_accounts: string[];
-  skills: string[];
-  shipping_address: ShippingAddress;
+  avatar_pic?: string | null;
+  background_cover?: string | null;
+  specialization?: string | null;
+  gender: "MALE" | "FEMALE" | "PREFER_NOT_TO_SAY" | string;
+  is_open_for_hire: boolean;
+  birthdate?: string | null; // ISO string when serialized from backend
+  contact?: string | null;
+  about_me?: string | null;
+  social_links?: any; // Represents the Prisma Json type
+  display_location?: string | null;
+  updated_at: string | Date;
 }
 
 
