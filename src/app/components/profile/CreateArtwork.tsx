@@ -114,16 +114,14 @@ export default function UploadArtworkModal({
   return (
     <div className="flex items-center justify-center w-full mx-auto p-4">
       <div
-        className="w-full rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-        style={{ background: "#0a0a0a", border: "1px solid #1a2e1a" }}
+        className="w-full rounded-2xl shadow-2xl bg-background overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
         <div
-          className="px-6 py-4 flex justify-between items-center"
-          style={{ borderBottom: "1px solid #1a2e1a" }}
+          className="px-6 py-4 flex justify-between items-center border-1 border-primary-line"
         >
           <div>
-            <h2 className="text-lg font-black text-white tracking-tight">Upload Artwork</h2>
+            <h2 className="text-lg font-black  tracking-tight">Upload Artwork</h2>
             <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>
               Share your masterpiece with the community
             </p>
@@ -142,26 +140,24 @@ export default function UploadArtworkModal({
 
           {/* Art File Upload */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: "#4b5563" }}>
+            <label className="text-xs font-bold uppercase tracking-widest mb-2 block">
               Art File *
             </label>
             <div
               onClick={() => artInputRef.current?.click()}
-              className="relative border-2 border-dashed rounded-xl h-44 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden"
-              style={{ borderColor: artPreview ? "#22c55e" : "#1a2e1a", background: artPreview ? "rgba(34,197,94,0.04)" : "#0d0d0d" }}
+              className="relative bg-primary border-2 border-dashed rounded-xl h-44 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden"
             >
               {artPreview ? (
                 <>
                   <img src={artPreview} alt="preview" className="absolute inset-0 w-full h-full object-cover opacity-40" />
                   <div className="relative z-10 flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "#22c55e" }}>
-                      <Upload size={18} className="text-black" />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-secondary" >
+                      <Upload size={18} className="" />
                     </div>
-                    <p className="text-xs font-bold text-white truncate max-w-[200px]">{formData.art_file?.name}</p>
+                    <p className="text-xs font-bold  truncate max-w-[200px]">{formData.art_file?.name}</p>
                     <button
                       onClick={(e) => { e.stopPropagation(); setArtPreview(null); setFormData((p) => ({ ...p, art_file: null })); }}
                       className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg"
-                      style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
                     >
                       <Trash2 size={10} /> Remove
                     </button>
@@ -169,11 +165,11 @@ export default function UploadArtworkModal({
                 </>
               ) : (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#1a2e1a" }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" >
                     <Upload size={22} style={{ color: "#4ade80" }} />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-white">Click to upload</p>
+                    <p className="text-sm font-bold ">Click to upload</p>
                     <p className="text-xs mt-1" style={{ color: "#4b5563" }}>PNG, JPG, GIF up to 50MB</p>
                   </div>
                 </div>
@@ -188,18 +184,15 @@ export default function UploadArtworkModal({
               type="text"
               placeholder="Artwork title *"
               maxLength={100}
-              className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white outline-none transition-all"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium  outline-none transition-all bg-primary border-1 border-primary-line"
               onFocus={(e) => (e.target.style.borderColor = "#22c55e")}
-              onBlur={(e) => (e.target.style.borderColor = "#1a2e1a")}
               onChange={(e) => setFormData({ ...formData, artwork_title: e.target.value })}
             />
             <textarea
               placeholder="Short story or description..."
               maxLength={500}
               rows={3}
-              className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none resize-none transition-all"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="w-full px-4 py-3 rounded-xl text-sm  outline-none resize-none transition-all bg-primary border-1 border-primary-line"
               onFocus={(e) => (e.target.style.borderColor = "#22c55e")}
               onBlur={(e) => (e.target.style.borderColor = "#1a2e1a")}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -215,8 +208,7 @@ export default function UploadArtworkModal({
               <div key={key}>
                 <label className="text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: "#4b5563" }}>{label}</label>
                 <select
-                  className="w-full px-3 py-2.5 rounded-xl text-sm font-medium text-white outline-none"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-primary outline-none"
                   value={(formData as any)[key]}
                   onChange={(e) => setFormData({ ...formData, [key]: e.target.value as any })}
                 >
@@ -238,8 +230,7 @@ export default function UploadArtworkModal({
                   type={type}
                   placeholder={placeholder}
                   disabled={formData.status !== "For Sale"}
-                  className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-white outline-none transition-all disabled:opacity-30"
-                  style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm font-medium  outline-none transition-all disabled:opacity-30 bg-primary"
                   value={(formData as any)[key]}
                   onChange={(e) => setFormData({ ...formData, [key]: Number(e.target.value) })}
                 />
@@ -253,8 +244,7 @@ export default function UploadArtworkModal({
               <Tag size={12} /> Tags — press Enter to add
             </label>
             <div
-              className="flex flex-wrap gap-2 p-3 rounded-xl transition-all"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="flex flex-wrap gap-2 p-3 rounded-xl transition-all bg-primary"
             >
               {formData.tags.map((tag, i) => (
                 <span
@@ -274,21 +264,20 @@ export default function UploadArtworkModal({
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 placeholder={formData.tags.length === 0 ? "e.g. Anime, Portrait, Abstract..." : "Add more..."}
-                className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-white placeholder:text-zinc-600 py-1"
+                className="flex-1 min-w-[120px] bg-transparent outline-none text-sm  placeholder:text-zinc-600 py-1"
               />
             </div>
           </div>
 
           {/* Status indicator */}
           <div
-            className="flex items-center gap-3 px-4 py-3 rounded-xl"
-            style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary"
           >
             <div
               className="w-2 h-2 rounded-full"
               style={{ background: statusColors[formData.status], boxShadow: `0 0 8px ${statusColors[formData.status]}` }}
             />
-            <p className="text-xs font-bold text-white">{formData.status}</p>
+            <p className="text-xs font-bold ">{formData.status}</p>
             {formData.status === "For Sale" && (
               <span className="ml-auto text-xs font-black" style={{ color: "#4ade80" }}>
                 ₱{formData.price.toFixed(2)} · {formData.stocks} stock{formData.stocks !== 1 ? "s" : ""}

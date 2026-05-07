@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Star, MoreHorizontal, Pencil, Trash2, Package, Tag, Loader2 } from "lucide-react";
 import { notify } from "@/utils/toastHelper";
 import { useUserData } from "@/hooks/useUserData";
-import { getSession } from "@/app/actions/auth";
 import Link from "next/link";
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
@@ -19,7 +18,7 @@ const ArtworkCardSkeleton = () => (
   <div
     className="rounded-2xl overflow-hidden animate-pulse bg-primary"
   >
-    <div className="h-52 w-full bg-secondary"  />
+    <div className="h-52 w-90 bg-secondary"  />
     <div className="p-4 space-y-3">
       <div className="h-4 w-2/3 rounded-lg bg-background" />
       <div className="h-3 w-1/3 rounded-lg bg-background" />
@@ -195,7 +194,6 @@ const ArtworkCard = ({
   const [deleting, setDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const status = statusColors[artwork.status] || statusColors["Not for Sale"];
-  console.log("artwork id", artwork.artwork_id);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -223,17 +221,17 @@ const ArtworkCard = ({
 
   return (
     <div
-      className="group rounded-2xl overflow-hidden transition-all border-1 border-primary-line cursor-pointer bg-primary duration-300 hover:translate-y-[-2px]"
+      className="group w-90 rounded-2xl overflow-hidden transition-all border-1 border-primary-line cursor-pointer bg-primary duration-300 hover:translate-y-[-2px]"
       onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(34,197,94,0.3)")}
     >
       <div className="relative h-52 overflow-hidden">
         <Link href={`/explore/${artwork.artwork_id}`} className="h-full" >
-        <img
-          src={artwork.art_file}
-          alt={artwork.artwork_title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-
+          <img
+            src={artwork.art_file}
+            alt={artwork.artwork_title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        </Link>
         <span
           className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg flex items-center gap-1.5"
           style={{ background: status.bg, color: status.text, backdropFilter: "blur(8px)" }}
@@ -245,7 +243,7 @@ const ArtworkCard = ({
         <div className="absolute top-3 right-3" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((p) => !p)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer"
             style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", color: "white" }}
           >
             <MoreHorizontal size={16} />
@@ -275,8 +273,6 @@ const ArtworkCard = ({
             </div>
           )}
         </div>
-        </Link>
-       
       </div>
 
       {/* Info */}
@@ -365,9 +361,9 @@ const ShopPage = () => {
   const isLoading = userLoading || loadingArtworks;
 
   return (
-    <div className="px-1">
+    <div className="px-1 max-w-[1280px] w-full m-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex  items-center justify-between mb-6 gap-4">
         <div>
           <h4 className="text-xl font-black ">Your Artshop</h4>
           <p className="text-xs mt-1" style={{ color: "#4b5563" }}>
@@ -385,7 +381,7 @@ const ShopPage = () => {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="flex gap-5">
           {[...Array(3)].map((_, i) => <ArtworkCardSkeleton key={i} />)}
         </div>
       ) : artworks.length === 0 ? (
@@ -407,7 +403,7 @@ const ShopPage = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="w-full  flex gap-5">
           {artworks.map((artwork) => (
             <ArtworkCard
               key={artwork.artwork_id}

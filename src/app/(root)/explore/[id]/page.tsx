@@ -9,6 +9,7 @@ import Menu from "@/app/components/preview/Menu";
 import { prisma } from "@/lib/prisma";
 import ProfileIcon from "@/app/components/ui/ProfileIcon";
 import DownloadButton from "@/app/components/ui/DownloadButton";
+import WatermarkedImage from "@/app/components/ui/WatermarkedImage";
 
 async function getArtwork(id: string) {
   try {
@@ -42,15 +43,14 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const art = await getArtwork(id);
 
-  if (!art) return notFound()
+  if (!art) return notFound();
 
   const author = art.user_profile;
   const status = statusColors[art.status] || statusColors["Not for Sale"];
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "linear-gradient(135deg, #050a05 0%, #0a140a 50%, #050a05 100%)" }}
+      className="min-h-screen max-w-[1890px] w-full -mt-4 m-auto"
     >
       {/* Grid overlay */}
       <div
@@ -61,36 +61,42 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
         }}
       />
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-10 py-10">
+      <div className="relative z-10 w-full px-4 md:px-10 py-10">
         <GoBackBtn />
 
         <div className="mt-6 lg:flex gap-10">
 
+          {/* ── LEFT ── */}
           <div className="flex-1 min-w-0">
             <div
-              className="w-full rounded-2xl overflow-hidden flex items-center justify-center"
+              className="w-full rounded-2xl overflow-hidden flex items-center justify-center bg-primary border-1 border-primary-line"
               style={{
-                background: "#0d0d0d",
-                border: "1px solid #1a2e1a",
                 minHeight: "420px",
                 maxHeight: "680px",
               }}
             >
-
-              <Image
-                width={900}
-                height={680}
-                src={art.art_file || "/placeholder-img.png"}
-                alt={art.artwork_title || "art preview"}
-                className="object-contain w-full h-full"
-                style={{ maxHeight: "680px" }}
-              />
+              {art.status === "For Sale" ? (
+                // Watermarked + right-click disabled for paid artwork
+                <WatermarkedImage
+                  src={art.art_file || "/placeholder-img.png"}
+                  alt={art.artwork_title || "art preview"}
+                  artistName={author?.full_name || author?.username || "Artist"}
+                />
+              ) : (
+                // Clean image for free or not-for-sale
+                <Image
+                  width={900}
+                  height={680}
+                  src={art.art_file || "/placeholder-img.png"}
+                  alt={art.artwork_title || "art preview"}
+                  className="object-contain w-full h-full"
+                  style={{ maxHeight: "680px" }}
+                />
+              )}
             </div>
 
             {/* Reaction row */}
-            <div
-              className="flex justify-between items-center mt-5 px-1"
-            >
+            <div className="flex justify-between items-center mt-5 px-1">
               <ul className="flex gap-6">
                 <li
                   className="flex items-center gap-2 cursor-pointer transition-colors group"
@@ -111,13 +117,12 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
 
             {/* Divider */}
-            <div className="mt-5 mb-6 h-px" style={{ background: "#1a2e1a" }} />
+            <div className="mt-5 mb-6 h-px bg-primary-line" />
 
             {/* Title & description */}
             <div className="space-y-3 px-1">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-2xl font-black text-white leading-tight">{art.artwork_title}</h2>
-                {/* Status badge */}
+                <h2 className="text-2xl font-black leading-tight">{art.artwork_title}</h2>
                 <span
                   className="shrink-0 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg"
                   style={{ background: status.bg, color: status.text }}
@@ -126,9 +131,8 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                   {art.status}
                 </span>
               </div>
-
               {art.description && (
-                <p className="text-sm leading-relaxed" style={{ color: "#4b5563" }}>
+                <p className="text-sm leading-relaxed">
                   {art.description}
                 </p>
               )}
@@ -136,28 +140,23 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
 
             {/* Author row */}
             <div
-              className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl bg-primary"
             >
               <div className="flex items-center gap-3">
                 {author?.avatar_pic ? (
-                  <ProfileIcon 
-                    username={author?.username}
-                    email={undefined}
-                  />
+                  <ProfileIcon username={author?.username} email={undefined} />
                 ) : (
                   <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm"
-                    style={{ background: "#1a2e1a", color: "#4ade80" }}
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-sm"
                   >
                     {author?.full_name?.[0] || "A"}
                   </div>
                 )}
                 <div>
-                  <p className="font-bold text-white text-sm">
+                  <p className="font-bold  text-sm">
                     {author?.full_name || author?.username}
                   </p>
-                  <p className="text-xs" style={{ color: "#4b5563" }}>0 followers</p>
+                  <p className="text-xs">0 followers</p>
                 </div>
               </div>
 
@@ -184,12 +183,7 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                 {art.tags.map((tag: string, i: number) => (
                   <span
                     key={i}
-                    className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold"
-                    style={{
-                      background: "rgba(34,197,94,0.07)",
-                      color: "#4b5563",
-                      border: "1px solid #1a2e1a",
-                    }}
+                    className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold bg-green-400"
                   >
                     <Tag size={10} />
                     {tag}
@@ -207,7 +201,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                 <span className="text-sm font-bold">0 Comments</span>
                 <MdKeyboardArrowDown size={18} />
               </button>
-              {/* Wire up comments when ready */}
               <div
                 className="py-12 flex flex-col items-center justify-center rounded-2xl"
                 style={{ border: "2px dashed #1a2e1a" }}
@@ -222,44 +215,36 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
 
           {/* ── RIGHT SIDEBAR ── */}
           <div className="lg:w-80 shrink-0 mt-8 lg:mt-0 space-y-4">
-
-            {/* Price card */}
             <div
-              className="rounded-2xl p-5"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="rounded-2xl p-5 bg-primary"
             >
-              <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#4b5563" }}>
+              <p className="text-xs font-black uppercase tracking-widest mb-3">
                 Listing
               </p>
 
               {art.status === "For Sale" ? (
                 <>
-                  <p className="text-3xl font-black text-white mb-1">
+                  <p className="text-3xl font-black mb-1">
                     ₱{art.price.toFixed(2)}
                   </p>
-                  <div className="flex items-center gap-1.5 mb-5" style={{ color: "#4b5563" }}>
+                  <div className="flex items-center gap-1.5 mb-5" >
                     <Package size={13} />
                     <span className="text-xs font-bold">{art.stocks} in stock</span>
                   </div>
                   <button
-                    className="w-full py-3 rounded-xl font-black text-sm transition-all hover:scale-[1.02]"
-                    style={{
-                      background: "linear-gradient(135deg,#16a34a,#22c55e)",
-                      color: "#000",
-                      boxShadow: "0 0 20px rgba(34,197,94,0.2)",
-                    }}
+                    className="w-full py-3 rounded-xl font-black text-sm transition-all hover:scale-[1.02] bg-green-400 cursor-pointer"
                   >
                     Buy Now
                   </button>
-                  <button
+                  {/* <button
                     className="w-full py-3 rounded-xl font-black text-sm mt-2 transition-all"
                     style={{ background: "transparent", color: "#4ade80", border: "1px solid #1a2e1a" }}
                   >
                     Add to Cart
-                  </button>
+                  </button> */}
                 </>
               ) : art.status === "Free Download" ? (
-               <DownloadButton artworkId={id}/>
+                <DownloadButton artworkId={id} />
               ) : (
                 <p className="text-sm font-bold" style={{ color: "#4b5563" }}>
                   This artwork is not for sale.
@@ -267,28 +252,26 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
               )}
             </div>
 
-            {/* Artwork info card */}
+            {/* Details card */}
             <div
-              className="rounded-2xl p-5 space-y-4"
-              style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+              className="rounded-2xl p-5 space-y-4 bg-primary"
             >
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#4b5563" }}>
+              <p className="text-xs font-black uppercase tracking-widest">
                 Details
               </p>
               {[
-                { label: "Type",    value: art.artwork_type },
-                { label: "Status",  value: art.status },
-                { label: "Sold",    value: `${art.sold} sold` },
-                { label: "Likes",   value: art.likes_count },
-                { label: "Posted",  value: new Date(art.created_at).toLocaleDateString() },
+                { label: "Type",   value: art.artwork_type },
+                { label: "Status", value: art.status },
+                { label: "Sold",   value: `${art.sold} sold` },
+                { label: "Likes",  value: art.likes_count },
+                { label: "Posted", value: new Date(art.created_at).toLocaleDateString() },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-center">
-                  <span className="text-xs font-bold" style={{ color: "#4b5563" }}>{label}</span>
-                  <span className="text-xs font-black text-white">{value}</span>
+                  <span className="text-xs font-bold " style={{ color: "#4b5563" }}>{label}</span>
+                  <span className="text-xs font-black">{value}</span>
                 </div>
               ))}
             </div>
-
           </div>
         </div>
       </div>
