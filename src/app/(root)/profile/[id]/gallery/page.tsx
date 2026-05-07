@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 import GalleryModal from "@/app/components/profile/gallery/GalleryModal";
 import Image from "next/image";
 import { FolderOpen, Plus, Lock } from "lucide-react";
@@ -60,8 +59,6 @@ const GalleryPage = () => {
         setIsOwner(owner);
 
         const res = await fetch(`/api/gallery/get?userId=${userAcc?.user_profile_id}`);
-        console.log("")
-        
         if (!res.ok) throw new Error("Failed to fetch galleries");
         const data = await res.json();
 
