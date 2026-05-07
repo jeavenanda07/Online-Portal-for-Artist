@@ -21,7 +21,7 @@ import { getUserInfo } from "@/app/actions/user";
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
   { label: "Explore", href: "/explore", icon: Globe },
-  { label: "Shop", href: "/shop", icon: ShoppingBag },
+  { label: "Posts", href: "/posts", icon: ShoppingBag },
   { label: "Leaderboards", href: "/leaderboards", icon: Trophy },
 ];
 
