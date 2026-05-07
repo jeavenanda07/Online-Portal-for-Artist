@@ -1,48 +1,48 @@
-import React from 'react'
+import React from 'react';
 import Navbar from '../components/dashboard/Navbar';
 import Header from '../components/dashboard/Header';
 import { getSession } from '../actions/auth';
 
-const LayoutWrapper = async ({children} : {children: React.ReactNode}) => {
+const BlockedScreen = ({ title, message }: { title: string; message: string }) => (
+  <div className="flex min-h-screen items-center justify-center bg-background text-white">
+    <div className="rounded-lg border border-white/10 bg-background p-10 text-center shadow-lg">
+      <h1 className="mb-4 text-3xl font-semibold">{title}</h1>
+      <p className="text-base text-white/80">{message}</p>
+    </div>
+  </div>
+);
+
+const LayoutWrapper = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession();
 
   if (!session) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-xl font-semibold">Unauthorized Access. Please log in.</p>
-      </div>
-    );
+    return <BlockedScreen title="Unauthorized" message="Please log in to continue." />;
   }
 
-  if (session.role !== "Admin") {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-xl font-semibold">Access Denied. Admins only.</p>
-      </div>
-    );
+  if (session.role !== 'Admin') {
+    return <BlockedScreen title="Access Denied" message="This area is restricted to administrators." />;
   }
-
-  console.log("Admin Session:", session.role);
 
   return (
-    <div className=''>
-        <Header />
+   
+    <div className="flex h-screen w-full bg-primary text-white overflow-hidden">
+      
+      
+      <div className="w-64 flex-shrink-0 border-r border-white/5">
         <Navbar />
+      </div>
 
-          <main
-        className="
-          pt-[0rem]          
-          pl-[20em]          
-          w-full
-          max-w-[2500px]
-          mx-auto
-          px-6
-        "
-      >
-        {children}
-      </main>
+     
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <Header />
+        
+       
+        <main className="flex-1 overflow-y-auto p-8">
+          {children}
+        </main>
+      </div>
     </div>
-  )
-}
+  );
+};
 
 export default LayoutWrapper;

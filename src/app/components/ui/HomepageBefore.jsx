@@ -10,8 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import Stack from "@/app/components/ui/Stack";
 import CardSwap, { Card } from "@/app/components/ui/CardSwap";
 import { supabase } from "@/lib/supabaseClient";
-import {deleteSession} from "@/app/actions/auth"
-import { getSession } from "next-auth/react";
+import {getSession, deleteSession} from "@/app/actions/auth"
 
 const heroSectionImgs = [
   {
@@ -153,7 +152,7 @@ const page = () => {
     deleteSession();
   }, [])
   return (
-    <main className="max-w-[1580px] w-full mx-auto overflow-hidden flex flex-col gap-0 px-4 md:px-10">
+    <main className="max-w-[1580px]  w-full mx-auto overflow-hidden flex flex-col gap-0 pt-10 px-4 md:px-10">
       {/* First section banner. Hero section */}
       <section className="h-[100dvh]  justify-center flex flex-col text-center items-center gap-14 -mt-20">
         <motion.h1
