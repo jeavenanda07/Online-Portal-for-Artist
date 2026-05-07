@@ -1,25 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Replace the whole getArtwork function with this
-export async function getArtwork(id: string) {
-    try {
-      const artwork = await prisma.artwork.findUnique({
-        where: { artwork_id: id },
-        include: {
-          user_profile: {
-            select: {
-              user_profile_id: true,
-              full_name: true,
-              username: true,
-              avatar_pic: true,
-            },
+export async function GET(
+  request: NextRequest,
+  // 1. Change the type of params to a Promise
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // 2. Await the params to get the id
+    const { id } = await params;
+
+    const artwork = await prisma.artwork.findUnique({
+      where: { artwork_id: id },
+      include: {
+        user_profile: {
+          select: {
+            user_profile_id: true,
+            full_name: true,
+            username: true,
+            avatar_pic: true,
           },
         },
-      });
-      return artwork;
-    } catch (err) {
-      console.error("getArtwork error:", err);
-      return null;
+      },
+    });
+
+    if (!artwork) {
+      return NextResponse.json({ error: "Artwork not found" }, { status: 404 });
     }
+
+    return NextResponse.json(artwork);
+  } catch (err) {
+    console.error("GET artwork error:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
+}
