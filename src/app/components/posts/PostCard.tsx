@@ -13,7 +13,7 @@ import { notify } from "@/utils/toastHelper";
 interface Comment {
   comment_id: string;
   content: string;
-  created_at: string;
+  created_at: Date | string; // 👈 accept both
   user_profile: {
     full_name: string;
     username: string;
@@ -54,7 +54,7 @@ export const PostCard = ({
       notify("Please log in to like posts.", "error");
       return;
     }
-    
+
     setLikeLoading(true);
     try {
       const res = await fetch("/api/post/like", {

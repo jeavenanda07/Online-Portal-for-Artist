@@ -1,7 +1,8 @@
 "use client";
 
 import { AiOutlineMessage } from "react-icons/ai";
-import { TiHeartOutline } from "react-icons/ti";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { IoSend } from "react-icons/io5";
 import ProfileIcon from "@/app/components/ui/ProfileIcon";
 import { useUserData } from "@/hooks/useUserData";
 import Modal from "@/app/components/ui/Modal";
@@ -10,57 +11,234 @@ import CreatePost from "@/app/components/profile/CreatePost";
 import { useMyPosts } from "@/hooks/useMyPost";
 import formatPostDate from "@/utils/date";
 import { notify } from "@/utils/toastHelper";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 
-const PostSkeleton = () => {
+interface Comment {
+  comment_id: string;
+  content: string;
+  created_at: Date | string;
+  user_profile: {
+    full_name: string;
+    username: string;
+    avatar_pic: string | null;
+  };
+}
+
+// ── Shared Skeleton ───────────────────────────────────────────
+const PostSkeleton = () => (
+  <div className="w-full max-w-[800px] border border-primary-line bg-primary mx-auto p-4 rounded-2xl animate-pulse">
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex gap-4 items-center">
+        <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700" />
+        <div className="flex flex-col gap-2">
+          <div className="h-4 w-32 bg-gray-300 dark:bg-gray-700 rounded" />
+          <div className="h-3 w-20 bg-gray-300 dark:bg-gray-700 rounded" />
+        </div>
+      </div>
+    </div>
+    <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-700 rounded mb-6 mt-6" />
+    <div className="w-full h-[250px] bg-gray-200 dark:bg-gray-800 rounded-xl mb-4" />
+  </div>
+);
+
+// ── Unified Post Card Component ───────────────────────────────
+const PostCard = ({ 
+  details, 
+  userDetails, 
+  onDelete, 
+  onUpdate 
+}: { 
+  details: any; 
+  userDetails: any; 
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, content: string) => void;
+}) => {
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(false);
+  
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentCount, setCommentCount] = useState(0);
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [fetchedComments, setFetchedComments] = useState(false);
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(details.content);
+
+  useEffect(() => {
+    if (!details.post_id) return;
+    const fetchData = async () => {
+      try {
+        if (userDetails?.user_profile_id) {
+            const likeRes = await fetch(`/api/post/like/count?post_id=${details.post_id}&user_profile_id=${userDetails.user_profile_id}`);
+            const likeData = await likeRes.json();
+            setLikeCount(likeData.count ?? 0);
+            setLiked(likeData.isLiked ?? false);
+        }
+
+        const commRes = await fetch(`/api/post/comment?post_id=${details.post_id}`);
+        const commData = await commRes.json();
+        setCommentCount(commData.comments?.length || 0);
+        if (showComments) {
+            setComments(commData.comments || []);
+            setFetchedComments(true);
+        }
+      } catch { /* silent */ }
+    };
+    fetchData();
+  }, [details.post_id, userDetails?.user_profile_id, showComments]);
+
+  const handleLike = async () => {
+    if (!userDetails?.user_profile_id) { notify("Please log in to like.", "error"); return; }
+    setLikeLoading(true);
+    try {
+      const res = await fetch("/api/post/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: details.post_id, user_profile_id: userDetails.user_profile_id }),
+      });
+      const data = await res.json();
+      setLiked(data.liked);
+      setLikeCount(data.count);
+    } catch { notify("Something went wrong.", "error"); }
+    finally { setLikeLoading(false); }
+  };
+
+  const handleComment = async () => {
+    if (!userDetails?.user_profile_id) { notify("Please log in to comment.", "error"); return; }
+    if (!commentText.trim()) return;
+    setCommentLoading(true);
+    try {
+      const res = await fetch("/api/post/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: details.post_id, user_profile_id: userDetails.user_profile_id, content: commentText }),
+      });
+      const data = await res.json();
+      setComments((prev) => [...prev, data.comment]);
+      setCommentCount((prev) => prev + 1);
+      setCommentText("");
+    } catch { notify("Something went wrong.", "error"); }
+    finally { setCommentLoading(false); }
+  };
+
   return (
-    <div className="w-full max-w-[800px] border border-primary-line bg-primary mx-auto p-4 rounded-md animate-pulse">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-4 items-center">
-          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700" />
-          <div className="flex flex-col gap-2">
-            <div className="h-4 w-32 bg-gray-300 dark:bg-gray-700 rounded" />
-            <div className="h-3 w-20 bg-gray-300 dark:bg-gray-700 rounded" />
+    <div
+      className="rounded-2xl overflow-hidden transition-all duration-300 mb-4 bg-primary shadow-sm border-1 border-primary-line"
+    >
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b-1 border-primary-line">
+        <div className="flex items-center gap-3 group">
+          <ProfileIcon username={userDetails?.username} />
+          <div>
+            <p className="text-sm font-bold ">
+              {userDetails?.full_name || userDetails?.username || "Anonymous"}
+            </p>
+            <p className="text-xs">{formatPostDate(details.date_posted)}</p>
           </div>
         </div>
-        <div className="h-6 w-8 bg-gray-300 dark:bg-gray-700 rounded" />
-      </div>
-      <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-700 rounded mb-6 mt-6" />
-      <div className="w-full h-[250px] sm:h-[350px] md:h-[450px] bg-gray-200 dark:bg-gray-800 rounded-sm mb-4" />
-      <div className="flex gap-8 items-center mt-3">
-        <div className="flex gap-2 items-center">
-          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700" />
-          <div className="h-4 w-8 bg-gray-300 dark:bg-gray-700 rounded" />
-        </div>
-        <div className="flex gap-2 items-center">
-          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700" />
-          <div className="h-4 w-16 bg-gray-300 dark:bg-gray-700 rounded" />
+        
+        <div className="relative">
+             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className=" hover: px-2 font-bold">...</button>
+             {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-background border border-primary-line rounded-xl shadow-xl z-20 p-1">
+                    <button onClick={() => { setIsEditing(true); setIsMenuOpen(false); }} className="w-full text-left p-2 text-xs  hover:bg-green-500/10 rounded-lg">Edit</button>
+                    <button onClick={() => onDelete(details.post_id)} className="w-full text-left p-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg">Delete</button>
+                </div>
+             )}
         </div>
       </div>
+
+      {/* Content */}
+      <div className="px-5 pb-3">
+        {isEditing ? (
+          <div className="mt-2">
+            <textarea 
+                value={editText} 
+                onChange={(e) => setEditText(e.target.value)}
+                className="w-full p-3 bg-secondary shadow-sm border border-primary-line rounded-xl text-sm  resize-none outline-none focus:border-green-500/50"
+                rows={3}
+            />
+            <div className="flex gap-2 justify-end mt-2">
+                <button onClick={() => setIsEditing(false)} className="text-xs text-gray-500">Cancel</button>
+                <button onClick={() => { onUpdate(details.post_id, editText); setIsEditing(false); }} className="bg-green-600 px-3 py-1 rounded-lg text-xs font-bold">Save</button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm leading-relaxed">{details.content}</p>
+        )}
+      </div>
+
+      {/* Media */}
+      {details.media?.length > 0 && (
+        <div className={`px-5 pb-4 grid gap-2 ${details.media.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+          {details.media.slice(0, 2).map((url: string, i: number) => (
+            <div key={url} className="relative rounded-xl overflow-hidden aspect-video bg-[#141414]">
+              <Image height={620} width={600} src={url} alt="post media" className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-6 px-5 py-3 border-t-1 border-primary-line" >
+        <button onClick={handleLike} disabled={likeLoading} className="flex items-center gap-2 text-xs font-bold" style={{ color: liked ? "#ef4444" : "#4b5563" }}>
+          {liked ? <FaHeart size={15} /> : <FaRegHeart size={15} />}
+          <span>{likeCount}</span>
+        </button>
+
+        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 text-xs font-bold" style={{ color: showComments ? "#4ade80" : "#4b5563" }}>
+          <AiOutlineMessage size={16} />
+          <span>{commentCount} comments</span>
+        </button>
+      </div>
+
+      {/* Comment Section */}
+      {showComments && (
+        <div className="px-5 pb-5 border-t border-primary-line]">
+          <div className="flex flex-col gap-4 mt-4 max-h-64 overflow-y-auto pr-1">
+            {comments.map((c) => (
+              <div key={c.comment_id} className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#1a2e1a] flex items-center justify-center text-[10px] text-green-400 font-bold shrink-0">
+                    {c.user_profile?.avatar_pic ? <Image width={40} height={40} alt="user_profile" src={c.user_profile.avatar_pic} className="rounded-full w-full h-full object-cover"/> : (c.user_profile?.full_name?.[0] || "A")}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-bold ">{c.user_profile?.full_name}</p>
+                    <p className="text-[10px] text-gray-600">{formatPostDate(c.created_at)}</p>
+                  </div>
+                  <p className="text-xs text-gray-300">{c.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="flex-1 px-4 py-2 rounded-xl text-sm bg-secondary shadow-sm border border-primary-line outline-none"
+              placeholder="Write a comment..."
+            />
+            <button onClick={handleComment} disabled={commentLoading || !commentText.trim()} className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-600 text-black">
+              <IoSend size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
+// ── Main Post Page ───────────────────────────────────────────
 const PostPage = () => {
   const { userDetails, loading } = useUserData();
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { posts, setPosts, loading: postsLoading, error } = useMyPosts();
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [editPostId, setEditPostId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const router = useRouter();
-
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setActiveMenuId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const { posts, setPosts, loading: postsLoading } = useMyPosts();
 
   const handleDeletePost = async (postId: string) => {
     try {
@@ -69,65 +247,32 @@ const PostPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId }),
       });
-
-      if (!res.ok) return alert("Failed to delete post.");
-
-      setPosts((prev) => prev.filter((p) => p.post_id !== postId));
-      const isMatch = posts.map(prev => console.log("prev", prev));
-      isMatch;
-      setActiveMenuId(null);
-
-      setTimeout(() => {
-        notify("Post deleted successfully", "success");
-      }, 100)
-
-
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.ok) {
+        setPosts((prev) => prev.filter((p) => p.post_id !== postId));
+        notify("Post deleted", "success");
+      }
+    } catch { notify("Error deleting post", "error"); }
   };
 
-  const handleUpdatePost = async (postId: string) => {
+  const handleUpdatePost = async (postId: string, content: string) => {
     try {
       const res = await fetch("/api/post/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId,
-          content: editText,
-        }),
+        body: JSON.stringify({ postId, content }),
       });
-  
-      if (!res.ok) return alert("Failed to update post.");
-  
-      const { post: updatedPost } = await res.json();
-  
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.post_id === postId ? { ...p, content: updatedPost.content } : p
-        )
-      );
-  
-      setEditPostId(null);
-      notify("Post updated successfully", "success");
-  
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.ok) {
+        setPosts((prev) => prev.map((p) => p.post_id === postId ? { ...p, content } : p));
+        notify("Post updated", "success");
+      }
+    } catch { notify("Error updating post", "error"); }
   };
 
   if (loading || postsLoading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 -mt-10">
-        <div className="flex flex-col justify-center py-10">
-          <div className="flex justify-between items-center w-full max-w-[800px] mb-4 mx-auto text-lg font-semibold opacity-40 animate-pulse">
-            <div className="h-7 w-32 bg-gray-300 dark:bg-gray-700 rounded" />
-            <div className="h-7 w-16 bg-gray-300 dark:bg-gray-700 rounded" />
-          </div>
-          <div className="w-full max-w-[800px] mx-auto flex flex-col gap-4">
-            <PostSkeleton />
-          </div>
-        </div>
+      <div className="px-4 py-10 flex flex-col gap-4 items-center">
+        <PostSkeleton />
+        <PostSkeleton />
       </div>
     );
   }
@@ -135,169 +280,37 @@ const PostPage = () => {
   return (
     <div className="px-4 sm:px-6 lg:px-8 -mt-10">
       <div className="flex flex-col justify-center py-10">
-        <div className="flex justify-between items-center w-full max-w-[800px] mb-6 mx-auto text-lg font-semibold">
-          <div>All Post {posts.length}</div>
+        <div className="flex justify-between items-center w-full max-w-[800px] mb-6 mx-auto text-lg font-semibold ">
+          <div>All Posts ({posts.length})</div>
         </div>
 
-        <Modal
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          className="w-[90vw] max-w-[30em] h-[20em]"
-        >
+        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className="w-[90vw] max-w-[30em]">
           <CreatePost onClose={() => setIsOpen(false)} setPosts={setPosts} />
         </Modal>
 
         <div className="w-full max-w-[800px] mx-auto">
+          {/* Create Post Trigger */}
           <div
             onClick={() => setIsOpen(true)}
-            className="border border-primary-line items-center p-4 flex justify-between bg-primary rounded-md gap-4"
+            className="border border-primary-line shadow-sm items-center p-4 flex justify-between bg-primary rounded-2xl gap-4 cursor-pointer mb-6"
           >
-            <div className="flex shrink-0">
-              <ProfileIcon username={userDetails?.username} />
-            </div>
-            <div className="border border-primary-line rounded-md bg-primary w-full py-3 sm:py-4 px-4 cursor-pointer hover:brightness-110 transition-all">
-              <p className="text-gray-400 text-sm sm:text-base truncate">
-                What's on your mind, {userDetails?.username || "Guest"}?
-              </p>
+            <ProfileIcon username={userDetails?.username} />
+            <div className="bg-secondary border border-primary-line rounded-xl w-full py-3 px-4">
+              <p className="opacity-60 text-sm">What's on your mind, {userDetails?.username || "Guest"}?</p>
             </div>
           </div>
 
-          <br />
-
-          <div className="flex flex-col gap-4 w-full" ref={menuRef}>
-            {posts?.map((details) => {
-              return (
-                <div
-                  key={details.post_id}
-                  className="border w-full border-primary-line bg-primary mx-auto p-4 rounded-md"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-4 items-center">
-                      <ProfileIcon username={userDetails?.username} />
-                      <div>
-                        <p className="font-bold text-sm sm:text-base">
-                          {userDetails?.full_name || "Anonymous"}
-                        </p>
-                        <p className="text-xs sm:text-sm opacity-50">
-                          {formatPostDate(details?.date_posted)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setActiveMenuId(
-                            activeMenuId === details.post_id ? null : details.post_id
-                          )
-                        }
-                        className="hover:opacity-50 cursor-pointer text-xl -translate-y-2 sm:-translate-y-4 px-2 font-bold"
-                      >
-                        ...
-                      </button>
-
-                      {activeMenuId === details.post_id && (
-                        <div className="absolute right-0 mt-2 w-36 bg-secondary border border-primary-line rounded-md shadow-lg z-20 flex flex-col p-1 text-sm">
-                          <button
-                            onClick={() => {
-                              setEditPostId(details.post_id);
-                              setEditText(details.content);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeletePost(details.post_id)} 
-                            className="w-full text-left p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-all"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {editPostId === details.post_id ? (
-                    <div className="mt-4">
-                      <textarea
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-2 border border-primary-line rounded bg-secondary text-sm sm:text-base resize-none"
-                        rows={3}
-                      />
-                      <div className="flex gap-2 justify-end mt-2">
-                        <button
-                          onClick={() => setEditPostId(null)}
-                          className="px-3 py-1 text-xs sm:text-sm border border-primary-line rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleUpdatePost(details.post_id);
-                          }}
-                          className="px-3 py-1 text-xs sm:text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <h6 className="mt-4 sm:mt-6 mb-2 text-sm sm:text-base">
-                      {details?.content}
-                    </h6>
-                  )}
-
-                  {details.media && details.media.length > 0 && (
-                    <div className="relative w-full h-[250px] sm:h-[350px] md:h-[450px] bg-secondary rounded-sm overflow-hidden mt-3 group">
-                      <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-none">
-                        {details.media.map(
-                          (mediaUrl: string, index: number) => (
-                            <a
-                              key={index}
-                              href={`/photo/${details.post_id}`}
-                              className="flex shrink-0 w-full h-full snap-center relative cursor-pointer"
-                            >
-                              <img
-                                src={mediaUrl}
-                                alt={`Feed content ${index + 1}`}
-                                className="w-full h-full object-contain bg-black/5"
-                              />
-                            </a>
-                          )
-                        )}
-                      </div>
-
-                      {details.media.length > 1 && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/40 px-2.5 py-1 rounded-full backdrop-blur-sm pointer-events-none">
-                          {details.media.map((_: any, index: number) => (
-                            <div
-                              key={index}
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                index === 0 ? "bg-white" : "bg-white/40"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex gap-8 items-center mt-3 text-sm sm:text-base">
-                    <div className="flex gap-2 items-center cursor-pointer hover:text-red-500 transition-colors">
-                      <TiHeartOutline size={22} />
-                      <p>10</p>
-                    </div>
-                    <div className="flex gap-2 items-center cursor-pointer hover:opacity-70">
-                      <AiOutlineMessage size={20} />
-                      <p>Comments</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Posts Feed */}
+          <div className="flex flex-col w-full">
+            {posts?.map((details) => (
+              <PostCard 
+                key={details.post_id} 
+                details={details} 
+                userDetails={userDetails} 
+                onDelete={handleDeletePost}
+                onUpdate={handleUpdatePost}
+              />
+            ))}
           </div>
         </div>
       </div>
