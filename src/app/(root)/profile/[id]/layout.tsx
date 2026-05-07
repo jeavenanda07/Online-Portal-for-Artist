@@ -21,11 +21,8 @@ export default async function Layout({ children, params }: LayoutProps) {
   }
 
   const session = await getSession();
+  const normalizedId = id;
 
-  // ✅ Guard 2: normalize the id — strip @ prefix if present
-  const normalizedId = id.replace(/^@/, "");
-
-  // ✅ Guard 3: try both with and without @ prefix to handle either format
   const userProfile = await prisma.userProfile.findFirst({
     where: {
       OR: [
@@ -35,7 +32,6 @@ export default async function Layout({ children, params }: LayoutProps) {
     },
   });
 
-  // ✅ Guard 4: profile doesn't exist → 404
   if (!userProfile) {
     return notFound();
   }
