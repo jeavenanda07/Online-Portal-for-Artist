@@ -20,8 +20,8 @@ import { getUserInfo } from "@/app/actions/user";
 
 export const nav_links = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Explore", href: "/explore", icon: Globe },
-  { label: "Posts", href: "/posts", icon: ShoppingBag },
+  { label: "Artworks", href: "/explore", icon: Globe },
+  { label: "Community Feed", href: "/posts", icon: ShoppingBag },
   { label: "Leaderboards", href: "/leaderboards", icon: Trophy },
 ];
 

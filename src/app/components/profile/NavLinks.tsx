@@ -16,9 +16,9 @@ const NavLinks = ({username, isMyAccount} : NavLinksProps) => {
     { name: "Home", href: `/profile/${username}`, range: "-left-0" },
     { name: "Gallery", href: `/profile/${username}/gallery`, range: "left-0"  },
     { name: "Posts", href: `/profile/${username}/posts`,range: "-left-1" },
-    { name: "Favorites", href: `/profile/${username}/favorites`,range: "left-2" },
-    { name: "Shop", href: `/profile/${username}/shop`,range: "-left-1" },
-    { name: "Appreciation", href: `/profile/${username}/appreciation`,range: "left-1" },
+    // { name: "Favorites", href: `/profile/${username}/favorites`,range: "left-2" },
+    { name: "Artworks", href: `/profile/${username}/artworks`,range: "-left-1" },
+    // { name: "Appreciation", href: `/profile/${username}/appreciation`,range: "left-1" },
     { name: "About", href: `/profile/${username}/about`,range: "left-0" },
     { name: "Stats", href: `/profile/${username}/stats`,range: "left-0" },
   ];

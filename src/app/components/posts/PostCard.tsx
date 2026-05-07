@@ -9,6 +9,7 @@ import { IoSend } from "react-icons/io5";
 import formatPostDate from "@/utils/date";
 import { useUserData } from "@/hooks/useUserData";
 import { notify } from "@/utils/toastHelper";
+import ProfileIcon from "../ui/ProfileIcon";
 
 interface Comment {
   comment_id: string;
@@ -100,7 +101,6 @@ export const PostCard = ({
     } catch { notify("Something went wrong.", "error"); }
     finally { setCommentLoading(false); }
   };
-
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all duration-300"
@@ -112,8 +112,7 @@ export const PostCard = ({
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <Link href={`/profile/${author?.username?.replace(/^@/, "")}`} className="flex items-center gap-3 group">
           {author?.avatar_pic ? (
-            <Image src={author.avatar_pic} alt={author.full_name || author.username}
-              width={40} height={40} className="rounded-full object-cover" style={{ width: 40, height: 40 }} />
+            <ProfileIcon username={author?.username?.replace(/^@/, "")}/>
           ) : (
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
               style={{ background: "#1a2e1a", color: "#4ade80" }}>
@@ -177,7 +176,6 @@ export const PostCard = ({
           <span>{likeCount}</span>
         </button>
 
-        {/* Comment toggle */}
         <button
           onClick={() => setShowComments((p) => !p)}
           className="flex items-center gap-2 text-xs font-bold transition-colors"
@@ -188,11 +186,9 @@ export const PostCard = ({
         </button>
       </div>
 
-      {/* Comments section */}
       {showComments && (
         <div className="px-5 pb-5" style={{ borderTop: "1px solid #1a2e1a" }}>
 
-          {/* Existing comments */}
           <div className="flex flex-col gap-4 mt-4 max-h-64 overflow-y-auto pr-1">
             {comments.length === 0 ? (
               <p className="text-xs text-center py-4" style={{ color: "#4b5563" }}>
