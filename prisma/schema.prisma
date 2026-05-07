@@ -55,6 +55,7 @@ model UserProfile {
   social_links     Json?
   display_location String?
 
+  skills           String[]
   updated_at       DateTime    @updatedAt
   posts            Post[]
   artworks         Artwork[]

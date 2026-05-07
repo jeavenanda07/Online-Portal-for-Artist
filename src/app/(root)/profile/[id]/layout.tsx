@@ -41,8 +41,6 @@ export default async function Layout({ children, params }: LayoutProps) {
   }
 
   const cleanUsername = userProfile.username.replace(/^@/, "");
-
-  // ✅ Guard 5: safe session comparison — handle missing session gracefully
   const sessionUsername = session?.username?.replace(/^@/, "") ?? "";
   const isMyAccount = sessionUsername !== "" && cleanUsername === sessionUsername;
 
@@ -97,13 +95,11 @@ export default async function Layout({ children, params }: LayoutProps) {
           </div>
         </div>
 
-        {/* Nav */}
         <div className="px-12 bg-primary flex justify-between items-center">
           <NavLinks username={cleanUsername} isMyAccount={isMyAccount} />
         </div>
       </div>
 
-      {/* Edit button — only for own profile */}
       {isMyAccount && (
         <div className="absolute top-84 right-20">
           <ButtonSubmission username={cleanUsername} isMyAccount={isMyAccount} />
