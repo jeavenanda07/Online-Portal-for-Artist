@@ -1,123 +1,282 @@
 import { FaRegHeart } from "react-icons/fa";
 import { FaRegCommentAlt } from "react-icons/fa";
-import Comments from '@/app/components/shared/Comments';
-import ProfileIcon from '@/app/components/ui/ProfileIcon';
-import { Sidebar } from '@/app/components/preview/Sidebar';
-
-import artwork from "@/data/artwork.json";
-import useProfile from "@/data/user_profile.json"
-import GoBackBtn from "@/app/components/ui/GoBackBtn";
-import comments from "@/data/comments.json"
 import { MdKeyboardArrowDown } from "react-icons/md";
+import { Package, Tag } from "lucide-react";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import GoBackBtn from "@/app/components/ui/GoBackBtn";
 import Menu from "@/app/components/preview/Menu";
+import { prisma } from "@/lib/prisma";
+import ProfileIcon from "@/app/components/ui/ProfileIcon";
+import DownloadButton from "@/app/components/ui/DownloadButton";
+import WatermarkedImage from "@/app/components/ui/WatermarkedImage";
 
+async function getArtwork(id: string) {
+  try {
+    const artwork = await prisma.artwork.findUnique({
+      where: { artwork_id: id },
+      include: {
+        user_profile: {
+          select: {
+            user_profile_id: true,
+            full_name: true,
+            username: true,
+            avatar_pic: true,
+          },
+        },
+      },
+    });
+    return artwork;
+  } catch (err) {
+    console.error("getArtwork error:", err);
+    return null;
+  }
+}
 
-const ArtPreview = async(params: String) => {
-  const username = await params;
-  // const art = artwork.find((u) => u.artwork_id == id);
-  // const user = useProfile.find((u) => u.id === art?.user_profile_id);
-  // const comment = comments.filter((u) => u.artworkId == art?.artwork_id)
-  
+const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
+  "For Sale":      { bg: "rgba(34,197,94,0.1)",  text: "#4ade80", dot: "#22c55e" },
+  "Not for Sale":  { bg: "rgba(113,113,122,0.1)", text: "#71717a", dot: "#71717a" },
+  "Free Download": { bg: "rgba(59,130,246,0.1)",  text: "#60a5fa", dot: "#3b82f6" },
+};
+
+const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  const art = await getArtwork(id);
+
+  if (!art) return notFound();
+
+  const author = art.user_profile;
+  const status = statusColors[art.status] || statusColors["Not for Sale"];
+
   return (
-    <div className='px-2 md:px-10 max-md:mt-5 mt-10 lg:flex gap-18 '>
-      <div className='md:w-full relative'>
-        <div className='w-full md:h-[50em] bg-primary  flex items-center  justify-center'>
-            {/* <Image 
-              width={800}
-              height={800}
-              src={art?.art_file || "/placeholder-img.png"}
-              alt={art?.artwork_title || "art preview"}
-              className='object-contain h-full w-full max:md:rounded-md rounded-xl'  
-            /> */}
-        </div>
+    <div
+      className="min-h-screen max-w-[1890px] w-full -mt-4 m-auto"
+    >
+      {/* Grid overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: "linear-gradient(#22c55e 1px,transparent 1px),linear-gradient(90deg,#22c55e 1px,transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
 
-        <div className='flex max-md:px-4 flex-col gap-8 py-4 max-w-[1280px] w-full mx-auto'>
-          <div className='flex justify-between items-center w-full'>
-            <ul className='flex gap-8'>
-              <li className='flex items-center gap-2'>
-                <FaRegHeart />
-                {/* <p>{art?.likes_count}</p> */}
-              </li>
+      <div className="relative z-10 w-full px-4 md:px-10 py-10">
+        <GoBackBtn />
 
-              <li className='flex items-center gap-2'>
-                <FaRegCommentAlt />
-                <p>12</p>
-              </li>
-            </ul>
+        <div className="mt-6 lg:flex gap-10">
 
-              {/* <Menu art={art}/> */}
-          </div>
-          
-          <div className='flex flex-col gap-4'>
-            <div>
-                {/* <h2>{art?.artwork_title}</h2>
-                <p>{art?.description}</p> */}
+          {/* ── LEFT ── */}
+          <div className="flex-1 min-w-0">
+            <div
+              className="w-full rounded-2xl overflow-hidden flex items-center justify-center bg-primary border-1 border-primary-line"
+              style={{
+                minHeight: "420px",
+                maxHeight: "680px",
+              }}
+            >
+              {art.status === "For Sale" ? (
+                // Watermarked + right-click disabled for paid artwork
+                <WatermarkedImage
+                  src={art.art_file || "/placeholder-img.png"}
+                  alt={art.artwork_title || "art preview"}
+                  artistName={author?.full_name || author?.username || "Artist"}
+                />
+              ) : (
+                // Clean image for free or not-for-sale
+                <Image
+                  width={900}
+                  height={680}
+                  src={art.art_file || "/placeholder-img.png"}
+                  alt={art.artwork_title || "art preview"}
+                  className="object-contain w-full h-full"
+                  style={{ maxHeight: "680px" }}
+                />
+              )}
             </div>
 
+            {/* Reaction row */}
+            <div className="flex justify-between items-center mt-5 px-1">
+              <ul className="flex gap-6">
+                <li
+                  className="flex items-center gap-2 cursor-pointer transition-colors group"
+                  style={{ color: "#4b5563" }}
+                >
+                  <FaRegHeart className="group-hover:text-red-400 transition-colors" size={18} />
+                  <span className="text-sm font-bold">{art.likes_count}</span>
+                </li>
+                <li
+                  className="flex items-center gap-2 cursor-pointer"
+                  style={{ color: "#4b5563" }}
+                >
+                  <FaRegCommentAlt size={16} />
+                  <span className="text-sm font-bold">0</span>
+                </li>
+              </ul>
+              <Menu art={art} />
+            </div>
 
-            <div className='flex items-center gap-4 w-full'>
-              {/* <ProfileIcon id={user?.id} profile={user?.profile_picture}/> */}
+            {/* Divider */}
+            <div className="mt-5 mb-6 h-px bg-primary-line" />
 
-              <div className='flex items-center justify-between w-full'>
-                  <div className='flex items-center gap-4'>
-                    <div>
-                      {/* <h3 className='font-bold'>{`${user?.first_name} ${user?.last_name}`}</h3> */}
-                      <p className='text-xs opacity-50 -mt-1'>20 followers</p>
-                    </div>
+            {/* Title & description */}
+            <div className="space-y-3 px-1">
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="text-2xl font-black leading-tight">{art.artwork_title}</h2>
+                <span
+                  className="shrink-0 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg"
+                  style={{ background: status.bg, color: status.text }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
+                  {art.status}
+                </span>
+              </div>
+              {art.description && (
+                <p className="text-sm leading-relaxed">
+                  {art.description}
+                </p>
+              )}
+            </div>
 
-                    <div>
-                      <div className='h-1 w-1 rounded-full m-auto bg-white'></div>
-                      <p className='text-blue-500'>Follow</p>
-                    </div>
-                    
+            {/* Author row */}
+            <div
+              className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl bg-primary"
+            >
+              <div className="flex items-center gap-3">
+                {author?.avatar_pic ? (
+                  <ProfileIcon username={author?.username} email={undefined} />
+                ) : (
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-sm"
+                  >
+                    {author?.full_name?.[0] || "A"}
                   </div>
-
-                  {/* <p className='opacity-50 w-fit text-sm'>{art?.created_at}</p> */}
+                )}
+                <div>
+                  <p className="font-bold  text-sm">
+                    {author?.full_name || author?.username}
+                  </p>
+                  <p className="text-xs">0 followers</p>
                 </div>
               </div>
 
-            <div className='flex gap-4 my-4'>
-              {/* {
-                art?.tags.map((u, i) => (
-                  <p key={i} className="py-2 px-4 bg-primary border-1 border-primary-line rounded-md">{u}</p>
-                ))
-              } */}
+              <div className="flex items-center gap-3">
+                <p className="text-xs hidden sm:block" style={{ color: "#4b5563" }}>
+                  {new Date(art.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+                <button
+                  className="px-4 py-1.5 rounded-lg text-xs font-black transition-all"
+                  style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }}
+                >
+                  Follow
+                </button>
+              </div>
             </div>
 
+            {/* Tags */}
+            {art.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-5 px-1">
+                {art.tags.map((tag: string, i: number) => (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold bg-green-400"
+                  >
+                    <Tag size={10} />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
-            <hr className='text-primary-line'/>
-          </div>
-        </div>
+            <div className="mt-6 h-px" style={{ background: "#1a2e1a" }} />
 
-
-        <div className='my-4 max-w-[1280px] w-full mx-auto'>
-
-          <div className='flex flex-col gap-8'>
-            <div className="flex gap-4 cursor-pointer items-center">
-               {/* <p>{comment.length} Comment</p> */}
-               <MdKeyboardArrowDown />
+            {/* Comments */}
+            <div className="mt-8 px-1">
+              <button className="flex items-center gap-2 mb-6" style={{ color: "#4b5563" }}>
+                <FaRegCommentAlt size={14} />
+                <span className="text-sm font-bold">0 Comments</span>
+                <MdKeyboardArrowDown size={18} />
+              </button>
+              <div
+                className="py-12 flex flex-col items-center justify-center rounded-2xl"
+                style={{ border: "2px dashed #1a2e1a" }}
+              >
+                <FaRegCommentAlt size={24} style={{ color: "#1a2e1a" }} />
+                <p className="text-xs mt-3 font-bold" style={{ color: "#4b5563" }}>
+                  No comments yet. Be the first.
+                </p>
+              </div>
             </div>
-            
-            {/* {
-              comment.map(i => (
-                <Comments key={i.id} {...i}/>
-              ))
-            } */}
+          </div>
+
+          {/* ── RIGHT SIDEBAR ── */}
+          <div className="lg:w-80 shrink-0 mt-8 lg:mt-0 space-y-4">
+            <div
+              className="rounded-2xl p-5 bg-primary"
+            >
+              <p className="text-xs font-black uppercase tracking-widest mb-3">
+                Listing
+              </p>
+
+              {art.status === "For Sale" ? (
+                <>
+                  <p className="text-3xl font-black mb-1">
+                    ₱{art.price.toFixed(2)}
+                  </p>
+                  <div className="flex items-center gap-1.5 mb-5" >
+                    <Package size={13} />
+                    <span className="text-xs font-bold">{art.stocks} in stock</span>
+                  </div>
+                  <button
+                    className="w-full py-3 rounded-xl font-black text-sm transition-all hover:scale-[1.02] bg-green-400 cursor-pointer"
+                  >
+                    Buy Now
+                  </button>
+                  {/* <button
+                    className="w-full py-3 rounded-xl font-black text-sm mt-2 transition-all"
+                    style={{ background: "transparent", color: "#4ade80", border: "1px solid #1a2e1a" }}
+                  >
+                    Add to Cart
+                  </button> */}
+                </>
+              ) : art.status === "Free Download" ? (
+                <DownloadButton artworkId={id} />
+              ) : (
+                <p className="text-sm font-bold" style={{ color: "#4b5563" }}>
+                  This artwork is not for sale.
+                </p>
+              )}
+            </div>
+
+            {/* Details card */}
+            <div
+              className="rounded-2xl p-5 space-y-4 bg-primary"
+            >
+              <p className="text-xs font-black uppercase tracking-widest">
+                Details
+              </p>
+              {[
+                { label: "Type",   value: art.artwork_type },
+                { label: "Status", value: art.status },
+                { label: "Sold",   value: `${art.sold} sold` },
+                { label: "Likes",  value: art.likes_count },
+                { label: "Posted", value: new Date(art.created_at).toLocaleDateString() },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex justify-between items-center">
+                  <span className="text-xs font-bold " style={{ color: "#4b5563" }}>{label}</span>
+                  <span className="text-xs font-black">{value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-          {/* <IoIosArrowForward className='absolute top-[9em] text-4xl -right-10 opacity-50 hover:opacity-100 transition ease-in-out duration-200 cursor-pointer'/>
-          <MdKeyboardArrowLeft className='absolute top-[9em] text-4xl -left-10 opacity-50 hover:opacity-100 transition ease-in-out duration-200 cursor-pointer'/> */}
       </div>
-
-      <div className='lg:w-80 ml-auto'>
-        {/* <Sidebar {...art}/> */}
-      </div>
-
-        <GoBackBtn/>
     </div>
-  )
-}
+  );
+};
 
-export default ArtPreview
+export default ArtPreview;

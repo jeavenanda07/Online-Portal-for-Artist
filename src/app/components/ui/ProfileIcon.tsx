@@ -16,7 +16,6 @@ const ProfileIcon = ({ username, email }: Props) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      // Avoid calling the action if there is no username
       if (!username) {
         setLoading(false);
         return;
@@ -39,7 +38,7 @@ const ProfileIcon = ({ username, email }: Props) => {
 
   return (
     <Link
-      href={`/profile/${username || ""}`}
+      href={`/profile/${username?.replace("@", "") || ""}`}
       className="block h-11 w-11 bg-primary rounded-full text-left"
     >
       <div className="h-full w-full rounded-full">

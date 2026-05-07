@@ -1,307 +1,315 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { X, Upload, Image as ImageIcon, Tag, Trash2 } from 'lucide-react';
-import { notify } from '@/utils/toastHelper';
+import React, { useState, useRef } from "react";
+import { X, Upload, Tag, Trash2, Loader2 } from "lucide-react";
+import { notify } from "@/utils/toastHelper";
+import { useUserData } from "@/hooks/useUserData";
 
 interface ArtworkFormData {
-  cover_photo: File | null;
   art_file: File | null;
   artwork_title: string;
   description: string;
-  artwork_type: 'Digital' | 'Physical';
+  artwork_type: "Digital" | "Physical";
   tags: string[];
-  status: 'For Sale' | 'Not for Sale' | 'Free Download';
+  status: "For Sale" | "Not for Sale" | "Free Download";
   price: number;
   stocks: number;
-  gallery_id?: string;
 }
 
-export default function UploadArtworkModal({ onClose }: {onClose: () => void }) {
-  // Main Form State
+export default function UploadArtworkModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess?: (artwork: any) => void;
+}) {
+  const { userDetails } = useUserData();
   const [formData, setFormData] = useState<ArtworkFormData>({
-    cover_photo: null,
     art_file: null,
-    artwork_title: '',
-    description: '',
-    artwork_type: 'Digital',
+    artwork_title: "",
+    description: "",
+    artwork_type: "Digital",
     tags: [],
-    status: 'Not for Sale',
+    status: "Not for Sale",
     price: 0,
     stocks: 1,
   });
-
-  // Preview States
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [artPreview, setArtPreview] = useState<string | null>(null);
-
-  // Tag Input State
   const [tagInput, setTagInput] = useState("");
-
-  // Refs for hidden file inputs
-  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const artInputRef = useRef<HTMLInputElement>(null);
 
-
-  // --- Handlers ---
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'art') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const previewUrl = URL.createObjectURL(file);
-
-    if (type === 'cover') {
-      setFormData(prev => ({ ...prev, cover_photo: file }));
-      setCoverPreview(previewUrl);
-    } else {
-      setFormData(prev => ({ ...prev, art_file: file }));
-      setArtPreview(previewUrl);
-    }
+    setFormData((prev) => ({ ...prev, art_file: file }));
+    setArtPreview(URL.createObjectURL(file));
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && tagInput.trim()) {
+    if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
       if (!formData.tags.includes(tagInput.trim())) {
-        setFormData(prev => ({
-          ...prev,
-          tags: [...prev.tags, tagInput.trim()]
-        }));
+        setFormData((prev) => ({ ...prev, tags: [...prev.tags, tagInput.trim()] }));
       }
       setTagInput("");
     }
   };
 
-  const removeTag = (indexToRemove: number) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_, index) => index !== indexToRemove)
-    }));
+  const removeTag = (i: number) => {
+    setFormData((prev) => ({ ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }));
   };
 
-  const handlePublish = () => {
-    // --- Validation Feature ---
-    // if (!formData.cover_photo) {
-    //   notify("Please upload a cover photo.", "error");
-    //   return;
-    // }
+  const handlePublish = async () => {
+    if (!formData.art_file) { notify("Please upload the art file.", "error"); return; }
+    if (!formData.artwork_title.trim()) { notify("Please provide a title.", "error"); return; }
+    if (formData.status === "For Sale" && formData.price <= 0) { notify("Set a valid price.", "error"); return; }
+    if (formData.status === "For Sale" && formData.stocks <= 0) { notify("Set a valid stock quantity.", "error"); return; }
+    if (!userDetails?.user_profile_id) { notify("Session expired.", "error"); return; }
 
-    if (!formData.art_file) {
-      notify("Please upload the main art file.", "error");
-      return;
+    setIsSubmitting(true);
+
+    try {
+      const data = new FormData();
+      data.append("art_file", formData.art_file);
+      data.append("user_profile_id", userDetails.user_profile_id);
+      data.append("artwork_title", formData.artwork_title);
+      data.append("description", formData.description);
+      data.append("artwork_type", formData.artwork_type);
+      data.append("tags", JSON.stringify(formData.tags));
+      data.append("status", formData.status);
+      data.append("price", String(formData.price));
+      data.append("stocks", String(formData.stocks));
+
+      const res = await fetch("/api/artwork/create", {
+        method: "POST",
+        body: data,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        notify(result.message || "Failed to publish.", "error");
+        return;
+      }
+
+      notify("Artwork published!", "success");
+      onSuccess?.(result.artwork);
+      setTimeout(() => onClose(), 1500);
+
+    } catch (err) {
+      console.error(err);
+      notify("Something went wrong.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    if (!formData.artwork_title.trim()) {
-      notify("Please provide a title for your artwork.", "error");
-      return;
-    }
-
-    if (formData.status === 'For Sale' && formData.price <= 0) {
-      notify("Please set a valid price for your artwork.", "error");
-      return;
-    }
-
-    if (formData.status === 'For Sale' && formData.stocks <= 0) {
-      notify("Please set a valid stock quantity for your artwork.", "error");
-      return;
-    }
-
-    notify("Publishing your artwork...", "success");
-
-    setTimeout(() => {
-        onClose();
-    }, 2000);
-    
-    console.log("Publishing Data:", formData);
+  const statusColors: Record<string, string> = {
+    "For Sale": "#22c55e",
+    "Not for Sale": "#71717a",
+    "Free Download": "#3b82f6",
   };
 
   return (
-    <div className="z-50 flex text-foreground items-center justify-center w-full mx-auto  p-4">
-      <div className="bg-background w-full   rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        
+    <div className="flex items-center justify-center w-full mx-auto p-4">
+      <div
+        className="w-full rounded-2xl shadow-2xl bg-background overflow-hidden flex flex-col max-h-[90vh]"
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-200 bg-background flex justify-between items-center">
+        <div
+          className="px-6 py-4 flex justify-between items-center border-1 border-primary-line"
+        >
           <div>
-             <h2 className="text-xl font-bold text-foreground">Create New Artwork</h2>
-             <p className="text-xs text-foreground">Share your masterpiece with the community</p>
+            <h2 className="text-lg font-black  tracking-tight">Upload Artwork</h2>
+            <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>
+              Share your masterpiece with the community
+            </p>
           </div>
-          
-          <button onClick={onClose} className="p-2 rounded-full transition-colors">
-            <X size={20} />
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+            style={{ color: "#4b5563", border: "1px solid #1a2e1a" }}
+          >
+            <X size={16} />
           </button>
         </div>
 
-        {/* Form Body */}
-        <div className="p-6 overflow-y-auto space-y-6">
-          
-          {/* File Upload Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Cover Photo */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cover Photo (Thumbnail)</label>
-              <div 
-                onClick={() => coverInputRef.current?.click()}
-                className="relative border-2 border-dashed  border-primary-line rounded-lg h-40 flex flex-col items-center justify-center hover:border-blue-500 cursor-pointer overflow-hidden transition-colors"
-              >
-                {coverPreview ? (
-                  <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <ImageIcon className="text-foreground mb-2" />
-                    <span className="text-xs text-foreground">Click to upload cover</span>
-                  </>
-                )}
-              </div>
-              <input type="file" ref={coverInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'cover')} />
-            </div>
+        {/* Body */}
+        <div className="p-6 overflow-y-auto space-y-5">
 
-            {/* Main Art File */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Main Art File</label>
-              <div 
-                onClick={() => artInputRef.current?.click()}
-                className="group relative border-2 border-dashed border-primary-line  rounded-xl overflow-hidden h-40 flex flex-col items-center justify-center hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 cursor-pointer transition-all"
-              >
-                {artPreview ? (
-                  <div className="flex flex-col items-center p-4">
-                    <img src={artPreview} alt="Art Preview" className="w-20 h-20 object-cover rounded-lg mb-2 shadow-md border border-white/20" />
-                    <p className="text-[10px] text-foreground truncate max-w-[150px] font-mono">{formData.art_file?.name}</p>
-                    <button 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        setArtPreview(null); 
-                        setFormData(prev => ({ ...prev, art_file: null })); 
-                      }}
-                      className="mt-2 text-foreground flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider"
+          {/* Art File Upload */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest mb-2 block">
+              Art File *
+            </label>
+            <div
+              onClick={() => artInputRef.current?.click()}
+              className="relative bg-primary border-2 border-dashed rounded-xl h-44 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden"
+            >
+              {artPreview ? (
+                <>
+                  <img src={artPreview} alt="preview" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-secondary" >
+                      <Upload size={18} className="" />
+                    </div>
+                    <p className="text-xs font-bold  truncate max-w-[200px]">{formData.art_file?.name}</p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setArtPreview(null); setFormData((p) => ({ ...p, art_file: null })); }}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg"
                     >
-                      <Trash2 size={12} /> Remove
+                      <Trash2 size={10} /> Remove
                     </button>
                   </div>
-                ) : (
-                  <>
-                    <div className=" p-3  text-foreground mb-2 group-hover:scale-110 transition-transform">
-                      <Upload className=" group-hover:text-500" size={24} />
-                    </div>
-                    <span className="text-xs  font-medium">Upload high-res artwork</span>
-                  </>
-                )}
-              </div>
-              <input type="file" ref={artInputRef} className="hidden" accept="image/*,video/*" onChange={(e) => handleFileChange(e, 'art')} />
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" >
+                    <Upload size={22} style={{ color: "#4ade80" }} />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold ">Click to upload</p>
+                    <p className="text-xs mt-1" style={{ color: "#4b5563" }}>PNG, JPG, GIF up to 50MB</p>
+                  </div>
+                </div>
+              )}
             </div>
+            <input type="file" ref={artInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileChange} />
           </div>
 
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <input 
-              type="text" 
-              placeholder="Artwork Title"
+          {/* Title & Description */}
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Artwork title *"
               maxLength={100}
-              className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-2 focus:ring-blue-500 outline-none"
-              onChange={(e) => setFormData({...formData, artwork_title: e.target.value})}
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium  outline-none transition-all bg-primary border-1 border-primary-line"
+              onFocus={(e) => (e.target.style.borderColor = "#22c55e")}
+              onChange={(e) => setFormData({ ...formData, artwork_title: e.target.value })}
             />
-
-            <textarea 
-              placeholder="Short explanation or story behind the art..."
+            <textarea
+              placeholder="Short story or description..."
               maxLength={500}
               rows={3}
-              className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="w-full px-4 py-3 rounded-xl text-sm  outline-none resize-none transition-all bg-primary border-1 border-primary-line"
+              onFocus={(e) => (e.target.style.borderColor = "#22c55e")}
+              onBlur={(e) => (e.target.style.borderColor = "#1a2e1a")}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
-          {/* Selectors */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Type</label>
-              <select 
-                className="w-full p-2 rounded-lg bg-secondary text-foreground "
-                value={formData.artwork_type}
-                onChange={(e) => setFormData({...formData, artwork_type: e.target.value as any})}
-              >
-                <option value="Digital">Digital</option>
-                <option value="Physical">Physical</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <select 
-                className="w-full p-2 rounded-lg  bg-secondary text-foreground "
-                value={formData.status}
-                onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-              >
-                <option value="Not for Sale">Not for Sale</option>
-                <option value="For Sale">For Sale</option>
-                <option value="Free Download">Free Download</option>
-              </select>
-            </div>
+          {/* Type & Status */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Type", key: "artwork_type", options: ["Digital", "Physical"] },
+              { label: "Status", key: "status", options: ["Not for Sale", "For Sale", "Free Download"] },
+            ].map(({ label, key, options }) => (
+              <div key={key}>
+                <label className="text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: "#4b5563" }}>{label}</label>
+                <select
+                  className="w-full px-3 py-2.5 rounded-xl text-sm font-medium bg-primary outline-none"
+                  value={(formData as any)[key]}
+                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value as any })}
+                >
+                  {options.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
 
-          {/* Pricing & Stocks */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Price (PHP)</label>
-              <input 
-                type="number" 
-                disabled={formData.status !== 'For Sale'}
-                className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent disabled:opacity-50 transition-opacity"
-                placeholder="0.00"
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Stocks</label>
-              <input 
-                type="number" 
-                disabled={formData.status !== 'For Sale'}
-                className="w-full px-4 py-2 rounded-lg bg-secondary text-foreground  transition-opacity"
-                placeholder="1"
-                value={formData.stocks}
-                onChange={(e) => setFormData({...formData, stocks: Number(e.target.value)})}
-              />
-            </div>
+          {/* Price & Stocks */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Price (PHP)", key: "price", type: "number", placeholder: "0.00" },
+              { label: "Stocks", key: "stocks", type: "number", placeholder: "1" },
+            ].map(({ label, key, type, placeholder }) => (
+              <div key={key}>
+                <label className="text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: "#4b5563" }}>{label}</label>
+                <input
+                  type={type}
+                  placeholder={placeholder}
+                  disabled={formData.status !== "For Sale"}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm font-medium  outline-none transition-all disabled:opacity-30 bg-primary"
+                  value={(formData as any)[key]}
+                  onChange={(e) => setFormData({ ...formData, [key]: Number(e.target.value) })}
+                />
+              </div>
+            ))}
           </div>
 
-          {/* Tags Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2 text-foreground">
-              <Tag size={16} /> Tags (Press Enter)
+          {/* Tags */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest mb-1.5 flex items-center gap-2" style={{ color: "#4b5563" }}>
+              <Tag size={12} /> Tags — press Enter to add
             </label>
-            <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-secondary text-foreground  focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-              {formData.tags.map((tag, index) => (
-                <span 
-                  key={index} 
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-md group"
+            <div
+              className="flex flex-wrap gap-2 p-3 rounded-xl transition-all bg-primary"
+            >
+              {formData.tags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
+                  style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }}
                 >
                   {tag}
-                  <button type="button" onClick={() => removeTag(index)} className="hover:text-red-500 transition-colors">
-                    <X size={14} />
+                  <button onClick={() => removeTag(i)} className="hover:text-red-400 transition-colors ml-0.5">
+                    <X size={10} />
                   </button>
                 </span>
               ))}
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
-                placeholder={formData.tags.length === 0 ? "Anime, Portrait..." : ""}
-                className="flex-1 min-w-[120px] bg-transparent outline-none text-sm py-1"
+                placeholder={formData.tags.length === 0 ? "e.g. Anime, Portrait, Abstract..." : "Add more..."}
+                className="flex-1 min-w-[120px] bg-transparent outline-none text-sm  placeholder:text-zinc-600 py-1"
               />
             </div>
+          </div>
+
+          {/* Status indicator */}
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary"
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: statusColors[formData.status], boxShadow: `0 0 8px ${statusColors[formData.status]}` }}
+            />
+            <p className="text-xs font-bold ">{formData.status}</p>
+            {formData.status === "For Sale" && (
+              <span className="ml-auto text-xs font-black" style={{ color: "#4ade80" }}>
+                ₱{formData.price.toFixed(2)} · {formData.stocks} stock{formData.stocks !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
-          <button onClick={onClose} className="px-6 py-2 rounded-lg font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+        <div
+          className="px-6 py-4 flex justify-end gap-3"
+          style={{ borderTop: "1px solid #1a2e1a" }}
+        >
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all"
+            style={{ color: "#4b5563", border: "1px solid #1a2e1a" }}
+          >
             Cancel
           </button>
-          <button 
+          <button
             onClick={handlePublish}
-            className="px-8 py-2 bg-blue-600 hover:bg-blue-700  rounded-lg font-semibold shadow-lg shadow-blue-500/30 transition-all"
+            disabled={isSubmitting}
+            className="px-8 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2"
+            style={
+              isSubmitting
+                ? { background: "#1a2e1a", color: "#4b5563", cursor: "not-allowed" }
+                : { background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#000", boxShadow: "0 0 20px rgba(34,197,94,0.25)" }
+            }
           >
-            Publish Art
+            {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+            {isSubmitting ? "Publishing..." : "Publish Artwork"}
           </button>
         </div>
       </div>

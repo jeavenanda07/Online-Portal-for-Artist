@@ -36,7 +36,7 @@
     "**/*.tsx",
     "src/app/(root)/page.jsx",
     "src/app/(root)/profile/[id]/gallery/page.jsx",
-    "src/app/components/profile/CreatePost.jsx",
+    "src/app/components/profile/CreatePost.tsx",
     "src/app/components/ui/IKImage.jsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"

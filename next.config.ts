@@ -57,6 +57,12 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: "https",
+        hostname: "rxlsrvdhnrpdkvhplmnj.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
         protocol: 'https',
         hostname: 'i.pinimg.com', // Added this since you're using it as a fallback
         port: '',
