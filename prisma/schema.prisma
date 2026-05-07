@@ -58,6 +58,8 @@ model UserProfile {
   updated_at       DateTime    @updatedAt
   posts            Post[]
   artworks         Artwork[]
+  post_likes       PostLike[]    // 👈 add this
+  post_comments    PostComment[]
 }
 
 enum Visibility {
@@ -77,7 +79,8 @@ model Post {
 
   author          UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
 
-  // comments        Comment[]   @relation("PostComments")
+  likes     PostLike[]
+  comments  PostComment[]
 }
 
 model Artwork {
@@ -105,27 +108,26 @@ model Artwork {
   // comments        Comment[]   @relation("ArtworkComments")
 }
 
-// model Comment {
-//   id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  
-//   // Relations to User Profiles
-//   commentedById   String      @db.Uuid
-//   commentedBy     UserProfile @relation("UserComments", fields: [commentedById], references: [user_profile_id], onDelete: Cascade)
+model PostLike {
+  like_id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id         String      @db.Uuid
+  user_profile_id String      @db.Uuid
+  created_at      DateTime    @default(now())
 
-//   commentedToId   String      @db.Uuid
-//   commentedTo     UserProfile @relation("UserReceivedComments", fields: [commentedToId], references: [user_profile_id], onDelete: Cascade)
+  post            Post        @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  user_profile    UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
 
-//   // Optional relations depending on whether it's an Artwork or a Post
-//   postId          String?     @db.Uuid 
-//   post            Post?       @relation(fields: [postId], references: [post_id], onDelete: Cascade)
+  @@unique([post_id, user_profile_id]) // prevent duplicate likes
+}
 
-//   artworkId       String?     @db.Uuid
-//   artwork         Artwork?    @relation(fields: [artworkId], references: [artwork_id], onDelete: Cascade)
+model PostComment {
+  comment_id      String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id         String      @db.Uuid
+  user_profile_id String      @db.Uuid
+  content         String      @db.VarChar(500)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
 
-//   // Comment content
-//   commentText     String      @db.Text
-  
-//   // Timestamps and edits
-//   lastEdited      DateTime?   @updatedAt
-//   created_at      DateTime    @default(now())
-// }
+  post            Post        @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  user_profile    UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+}
