@@ -40,7 +40,6 @@ const ExploreLayout = async () => {
           />
           <BsSearch className="absolute top-4 left-5" />
         </div>
-        <SearchHeader />
       </div>
 
       {/* Art grid */}
@@ -53,7 +52,7 @@ const ExploreLayout = async () => {
         </div>
       ) : (
         <div
-          className="w-full mx-auto columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 mt-40"
+          className="w-full mx-auto columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 mt-30"
         >
           {artworks.map((art) => (
             <Link
