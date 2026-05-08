@@ -87,7 +87,7 @@ export default async function Layout({
       : "/banner-dark-mode.jpg";
 
   return (
-    <div className="relative z-10 min-h-screen">
+    <div className="relative min-h-screen">
       <div className="relative w-full h-48 sm:h-64 md:h-72 lg:h-80 max-sm:h-60 -mt-2">
         <Image
             fill

@@ -373,7 +373,7 @@ export default function Header() {
                 {profile?.full_name || "User"}
               </p>
               <p className="text-xs text-zinc-500 truncate">
-                @{profile?.username || "username"}
+                {profile?.username || "username"}
               </p>
             </div>
           </div>

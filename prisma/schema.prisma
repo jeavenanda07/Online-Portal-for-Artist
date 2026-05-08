@@ -51,15 +51,17 @@ model UserProfile {
   social_links     Json?
   display_location String?
 
-  skills        String[]
-  updated_at    DateTime      @updatedAt
-  posts         Post[]
-  artworks      Artwork[]
-  post_likes    PostLike[] // 👈 add this
-  post_comments PostComment[]
-  galleries     Gallery[]
-  followers     Follow[]      @relation("UserFollowing") // people who follow ME
-  following     Follow[]      @relation("UserFollowers") // people I follow
+  skills          String[]
+  updated_at      DateTime      @updatedAt
+  posts           Post[]
+  artworks        Artwork[]
+  post_likes      PostLike[] // 👈 add this
+  post_comments   PostComment[]
+  galleries       Gallery[]
+  followers       Follow[]      @relation("UserFollowing") // people who follow ME
+  following       Follow[]      @relation("UserFollowers") // people I follow
+  artist_requests ArtRequest[]  @relation("ArtistRequests") // commissions I received
+  client_requests ArtRequest[]  @relation("ClientRequests") // commissions I sent
 }
 
 enum Visibility {
@@ -175,4 +177,53 @@ model Follow {
 
   @@unique([follower_id, following_id])
   @@map("follows")
+}
+
+enum ArtRequestStatus {
+  Pending
+  Accepted
+  Rejected
+  InProgress
+  Completed
+  Cancelled
+}
+
+enum ArtType {
+  DigitalArt
+  Traditional
+  ThreeD
+  PixelArt
+  Illustration
+  Other
+}
+
+model ArtRequest {
+  art_request_id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // The artist receiving the commission
+  artist_id String      @db.Uuid
+  artist    UserProfile @relation("ArtistRequests", fields: [artist_id], references: [user_profile_id], onDelete: Cascade)
+
+  // The client sending the commission
+  client_id String      @db.Uuid
+  client    UserProfile @relation("ClientRequests", fields: [client_id], references: [user_profile_id], onDelete: Cascade)
+
+  title            String
+  description      String           @db.Text
+  art_type         ArtType          @default(DigitalArt)
+  budget           Float
+  deadline         DateTime?
+  tags             String[]
+  reference_images String[] // store uploaded image URLs
+  status           ArtRequestStatus @default(Pending)
+
+  // Shipping info (for physical artworks)
+  shipping_name    String?
+  shipping_address String?
+  shipping_contact String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("art_requests")
 }

@@ -13,11 +13,18 @@ export interface CommissionFormData {
     budget: string;
   }
 
-export interface FinalCommissionData extends CommissionFormData {
-    commissionTo?: UserProfile;
-    commissionFrom?: UserProfile;
+  export interface FinalCommissionData {
+    title: string;
+    description: string;
+    artType: string;
+    deadline: string;
+    budget: string;
+    shippingName?: string;
+    shippingAddress?: string;
+    shippingContact?: string;
     tags: string[];
-    images: ImageRef[];
+    images: { file: File; url: string }[];   // blob previews for UI
+    uploadedImageUrls: string[];              // ✅ real Supabase public URLs
+    commissionTo: string;
     createdAt: string;
-}
-  
+  }

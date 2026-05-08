@@ -1,3 +1,5 @@
+//buttonSubmission to open Commission Form
+
 "use client";
 
 import Link from "next/link";
@@ -15,6 +17,8 @@ interface ButtonSubmissionProps {
 }
 
 const ButtonSubmission = ({ username, isMyAccount }: ButtonSubmissionProps) => {
+  console.log("username", username);
+  const usernameId = username
   const commissionPopup = usePopup({
     closeOnEsc: true,
     closeOnOutsideClick: true,
@@ -48,12 +52,11 @@ const ButtonSubmission = ({ username, isMyAccount }: ButtonSubmissionProps) => {
 
       {commissionPopup.isOpen && (
         <ModalPortal>
-          <div ref={commissionPopup.ref as any}>
-            {/* <CommissionForm func={commissionPopup.close} username={username} /> */}
+          <div ref={commissionPopup.ref as any} className="relative z-[200] bg-red-500 ">
+            <CommissionForm func={commissionPopup.close} username={username} />
           </div>
-          <DarkBlur />
         </ModalPortal>
-      )}
+)}
     </>
   );
 };

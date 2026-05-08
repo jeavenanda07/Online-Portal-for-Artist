@@ -1,18 +1,24 @@
+// ModalPortal.tsx — should look like this
 "use client";
 
-import { createPortal } from "react-dom"; //  used to render a component's children into a different location in the DOM
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
-export default function ModalPortal({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [mounted, setMounted] = useState(false);
+const ModalPortal = ({ children }: { children: React.ReactNode }) => {
+  const el = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => setMounted(true), []);
+  if (!el.current) {
+    el.current = document.createElement("div");
+  }
 
-  if (!mounted) return null;
+  useEffect(() => {
+    document.body.appendChild(el.current!);
+    return () => {
+      document.body.removeChild(el.current!);
+    };
+  }, []);
 
-  return createPortal(children, document.body);
-}
+  return createPortal(children, el.current);
+};
+
+export default ModalPortal;
