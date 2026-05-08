@@ -1,18 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
+export async function GET() {
 
-  if (!userId) {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+  try {
+
+    const galleries =
+      await prisma.gallery.findMany({
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+    return NextResponse.json(galleries);
+
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          "Failed to fetch galleries",
+      },
+      {
+        status: 500,
+      }
+    );
   }
-
-  const galleries = await prisma.gallery.findMany({
-    where: { user_profile_id: userId },
-    orderBy: { created_at: "desc" },
-  });
-
-  return NextResponse.json(galleries);
 }

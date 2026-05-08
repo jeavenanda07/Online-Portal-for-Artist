@@ -5,6 +5,7 @@ import Modal from "../../ui/Modal";
 import CreateGalleryModal from "./CreateGalleryModal";
 import GalleryDetailsView from "./GalleryDetailsView";
 import Image from "next/image";
+import { getSession } from "@/app/actions/auth";
 
 import {
   Plus,
@@ -12,6 +13,21 @@ import {
   LayoutGrid,
   FolderOpen,
 } from "lucide-react";
+
+interface Artwork {
+  artwork_id: string;
+  artwork_title: string;
+  art_file: string;
+  status?: string;
+  price?: number;
+  likes_count?: number;
+  user_profile?: {
+    full_name: string;
+    username: string;
+    avatar_pic: string | null;
+  } | null;
+  added_at?: string;
+}
 
 interface Gallery {
   id: string;
@@ -21,6 +37,8 @@ interface Gallery {
   visibility: "public" | "private";
   cover_image?: string;
   created_at: string;
+  _count?: { artworks: number };
+  artworks?: Artwork[]; // ✅ same shape as GalleryDetailsView now
 }
 
 interface GalleryModalProps {
@@ -45,32 +63,28 @@ const GalleryModal = ({
   const [loading, setLoading] =
     useState(true);
 
-  const fetchGalleries = async () => {
-    try {
-      setLoading(true);
-
-      const res = await fetch("/api/gallery/get");
-
-      if (!res.ok) {
-        throw new Error(
-          "Failed to fetch galleries"
-        );
+    const fetchGalleries = async () => {
+      try {
+        setLoading(true);
+        const session = await getSession();
+        if (!session) return;
+    
+        const profileRes = await fetch(`/api/profile/get?username=${session.username?.replace(/^@/, "")}`);
+        const profileData = await profileRes.json();
+        const user_profile_id = profileData.profile?.user_profile_id;
+        if (!user_profile_id) return;
+    
+        // ✅ Use /api/gallery/user to get _count
+        const res = await fetch(`/api/gallery/user?user_profile_id=${user_profile_id}`);
+        if (!res.ok) throw new Error("Failed to fetch galleries");
+        const data = await res.json();
+        setGalleryData(data.galleries ?? []); // ✅ data.galleries not data
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-
-      const data = await res.json();
-
-      setGalleryData(data);
-
-    } catch (error) {
-
-      console.error(error);
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
-
+    };
   useEffect(() => {
 
     if (isOpen) {
@@ -242,6 +256,12 @@ const GalleryModal = ({
                           <h4 className="text-xl font-bold text-white line-clamp-1">
                             {folder.title}
                           </h4>
+                          {/* ✅ Add artwork count */}
+                          {folder._count && (
+                            <p className="text-[10px] text-zinc-500 font-bold mt-1">
+                              {folder._count.artworks} artwork{folder._count.artworks !== 1 ? "s" : ""}
+                            </p>
+                          )}
 
                         </div>
 

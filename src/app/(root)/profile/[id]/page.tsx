@@ -168,7 +168,6 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
     </div>
   </div>
 
-  {/* Open for commissions badge (unchanged) */}
   <div className="bg-primary rounded-2xl border border-white/5 px-5 py-4 flex items-center justify-between">
     <div>
       <p className="text-sm font-semibold">Commissions</p>

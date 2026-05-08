@@ -15,13 +15,11 @@ const Menu = ({ art }: any) => {
 
   return (
     <div className="relative z-10 flex items-center gap-4">
-
-      {/* Save to Collection */}
-      <SaveToCollectionModal
-        isOpen={favoriteIsOpen}
-        onClose={() => setFavoriteIsOpen(false)}
-        artworkId={art?.artwork_id} // ✅ pass real artwork id
-      />
+     <SaveToCollectionModal
+            isOpen={favoriteIsOpen}
+            onClose={() => setFavoriteIsOpen(false)}
+            artworkId={art?.artwork_id}  // ✅ real artwork id from the page
+            />
       <div
         onClick={() => setFavoriteIsOpen((i) => !i)}
         className="flex items-center gap-2 bg-green-500 px-4 py-2 rounded-md text-black hover:opacity-100 opacity-80 cursor-pointer"

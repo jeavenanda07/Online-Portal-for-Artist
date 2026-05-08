@@ -23,8 +23,17 @@ import { notify } from "@/utils/toastHelper";
 
 interface Artwork {
   artwork_id: string;
-  title: string;
-  image_url: string;
+  artwork_title: string;
+  art_file: string;
+  status?: string; // Made optional if not always returned
+  price?: number;
+  likes_count?: number;
+  user_profile?: {
+    full_name: string;
+    username: string;
+    avatar_pic: string | null;
+  } | null;
+  added_at?: string;
 }
 
 interface Gallery {
@@ -34,7 +43,8 @@ interface Gallery {
   description?: string;
   visibility: "public" | "private";
   cover_image?: string;
-  artworks?: Artwork[];
+  artworks?: Artwork[]; 
+  _count?: { artworks: number };
 }
 
 interface GalleryDetailsViewProps {
@@ -71,21 +81,22 @@ const GalleryDetailsView = ({
   // FETCH FULL GALLERY
   // =========================
   const fetchGallery = async () => {
-
     try {
-
-      const res = await fetch(
-        `/api/gallery/${folder.id}`
-      );
-
-      if (!res.ok) return;
-
-      const data = await res.json();
-
-      setGallery(data);
-
+      const [galleryRes, artworksRes] = await Promise.all([
+        fetch(`/api/gallery/${folder.id}`),
+        fetch(`/api/gallery/artworks?gallery_id=${folder.id}`),
+      ]);
+  
+      if (galleryRes.ok) {
+        const data = await galleryRes.json();
+        setGallery(data);
+      }
+  
+      if (artworksRes.ok) {
+        const data = await artworksRes.json();
+        setGallery((prev) => ({ ...prev, artworks: data.artworks ?? [] }));
+      }
     } catch (error) {
-
       console.error(error);
     }
   };
@@ -447,37 +458,24 @@ const GalleryDetailsView = ({
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
 
-              {gallery.artworks.map(
-                (art) => (
-
-                  <div
-                    key={art.artwork_id}
-                    className="group relative aspect-[3/4] rounded-3xl overflow-hidden bg-primary border border-white/5 hover:border-[#00d26a]/30 transition-all cursor-pointer"
-                  >
-
-                    <Image
-                      fill
-                      src={art.image_url}
-                      alt={art.title}
-                      className="object-cover"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-
-                    <div className="absolute bottom-4 left-4 z-20">
-
-                      <p className="text-[10px] font-black text-zinc-500 uppercase">
-                        Artwork
-                      </p>
-
-                      <p className="text-sm font-bold text-white tracking-tight">
-                        {art.title}
-                      </p>
-
-                    </div>
-                  </div>
-                )
-              )}
+{gallery.artworks.map((art) => (
+  <div
+    key={art.artwork_id}
+    className="group relative aspect-[3/4] rounded-3xl overflow-hidden bg-primary border border-white/5 hover:border-[#00d26a]/30 transition-all cursor-pointer"
+  >
+    <Image
+      fill
+      src={art.art_file}          // ✅ was art.image_url
+      alt={art.artwork_title}     // ✅ was art.title
+      className="object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
+    <div className="absolute bottom-4 left-4 z-20">
+      <p className="text-[10px] font-black text-zinc-500 uppercase">Artwork</p>
+      <p className="text-sm font-bold text-white tracking-tight">{art.artwork_title}</p>
+    </div>
+  </div>
+))}
             </div>
           )}
         </div>
