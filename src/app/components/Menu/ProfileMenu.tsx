@@ -93,7 +93,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
 
   return (
     <div className=" flex items-center justify-center">
-      <div className="relative w-[320px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
+      <div className="relative w-[320px] overflow-hidden max-md:translate-x-[120px] rounded-[2.5rem] border border-white/10 bg-primary backdrop-blur-2xl shadow-2xl">
         
         <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="relative mb-4 group">
