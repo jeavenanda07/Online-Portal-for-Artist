@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 border-t border-white/5 bg-primary/40 backdrop-blur-xl mt-20">
+    <footer className="relative z-10 border-t border-white/5 bg-primary/50 backdrop-blur-xl">
       
       <div className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-12 py-14">
 
@@ -33,9 +33,8 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 bg-secondary border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#00d26a]/50 transition-all placeholder:text-zinc-500"
+                className="flex-1 border border-white/10 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[#00d26a]/50 transition-all placeholder:text-zinc-500"
               />
-
               <button className="bg-gradient-primary px-6 py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all whitespace-nowrap">
                 Subscribe
               </button>
