@@ -89,14 +89,18 @@ export default async function Layout({
   return (
     <div className="relative z-10 min-h-screen">
       <div className="relative w-full h-48 sm:h-64 md:h-72 lg:h-80 max-sm:h-60 -mt-2">
-        <img
-          src={
-            userProfile.background_cover ||
-            defaultBanner
-          }
-          alt="Profile background cover"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
+        <Image
+            fill
+            priority
+            quality={85}
+            sizes="100vw"
+            src={
+              userProfile.background_cover ||
+              defaultBanner
+            }
+            alt="Profile background cover"
+            className="object-cover object-center transition-opacity duration-500 ease-in-out"
+          />
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80" />
 
@@ -206,7 +210,6 @@ export default async function Layout({
         />
       </div>
 
-      {/* ── PAGE CONTENT ── */}
       <div className="px-4 sm:px-8 lg:px-18 py-12">
         {children}
       </div>
