@@ -12,11 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 model Credentials {
   user_id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   gmail          String   @unique
@@ -63,6 +58,8 @@ model UserProfile {
   post_likes    PostLike[] // 👈 add this
   post_comments PostComment[]
   galleries     Gallery[]
+  followers     Follow[]      @relation("UserFollowing") // people who follow ME
+  following     Follow[]      @relation("UserFollowers") // people I follow
 }
 
 enum Visibility {
@@ -138,15 +135,12 @@ model Gallery {
   id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_profile_id String @db.Uuid
 
-  user_profile UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
-
-  title       String
-  slug        String  @unique
-  description String?
-
-  cover_image String?
-
-  visibility galleryVisibility @default(public)
+  user_profile UserProfile       @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+  title        String
+  slug         String            @unique
+  description  String?
+  cover_image  String?
+  visibility   galleryVisibility @default(public)
 
   artworks GalleryArtwork[]
 
@@ -168,4 +162,17 @@ model GalleryArtwork {
 enum galleryVisibility {
   public
   private
+}
+
+model Follow {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  follower_id  String   @db.Uuid
+  following_id String   @db.Uuid
+  created_at   DateTime @default(now())
+
+  follower  UserProfile @relation("UserFollowers", fields: [follower_id], references: [user_profile_id], onDelete: Cascade)
+  following UserProfile @relation("UserFollowing", fields: [following_id], references: [user_profile_id], onDelete: Cascade)
+
+  @@unique([follower_id, following_id])
+  @@map("follows")
 }

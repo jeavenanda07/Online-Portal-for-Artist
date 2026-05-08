@@ -338,7 +338,6 @@ export default function Header() {
       }}
       className="fixed inset-y-0 right-0 w-[85%] max-w-[340px] z-[130] flex flex-col overflow-hidden border-l border-white/10 bg-primary shadow-2xl"
     >
-      {/* HEADER */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
         <div>
           <h2 className="text-sm font-black uppercase tracking-[0.25em] text-white">
@@ -381,7 +380,6 @@ export default function Header() {
         </div>
       )}
 
-      {/* MOBILE NAV */}
       <nav className="flex-1 px-4 py-6 overflow-y-auto">
         <div className="flex flex-col gap-2">
           {nav_links.map(({ label, href, icon: Icon }) => {
@@ -398,12 +396,10 @@ export default function Header() {
                     : "border border-transparent hover:bg-white/[0.03]"
                 }`}
               >
-                {/* ACTIVE BAR */}
                 {isActive && (
                   <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-[#00d26a]" />
                 )}
 
-                {/* ICON */}
                 <div
                   className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
                     isActive
@@ -434,7 +430,6 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* FOOTER */}
       <div className="border-t border-white/5 p-5">
         <button
           onClick={mobileMenu.close}

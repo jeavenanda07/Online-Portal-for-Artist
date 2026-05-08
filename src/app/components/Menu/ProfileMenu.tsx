@@ -98,7 +98,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
         <div className="p-8 pb-6 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="relative mb-4 group">
             <div className="absolute inset-0 bg-green-400 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
-            <Link href={`/profile/${userData?.username?.replace(/^@/, '')}`} className="relative block">
+          <Link href={`/profile/${userData?.username?.replace(/^@/, '')}`} className="relative block">
               <div className="rounded-full p-1 bg-gradient-to-tr from-green-400 to-emerald-600">
                 <Image
                   width={80}

@@ -40,7 +40,7 @@ interface Gallery {
   _count?: { artworks: number };
   artworks?: Artwork[]; // ✅ same shape as GalleryDetailsView now
 }
-
+ 
 interface GalleryModalProps {
   isOpen: boolean;
   onClose: () => void;
