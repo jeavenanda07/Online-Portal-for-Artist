@@ -24,9 +24,9 @@ const sections = [
   },
   {
     id: "buy",
-    href: "/shop",
+    href: "/posts",
     image: "/buy-art.png",
-    label: "Buy Art",
+    label: "Community Feed",
     description: "Collect one-of-a-kind pieces from independent artists.",
     message: "Find and collect unique pieces you'll love!",
   },

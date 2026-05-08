@@ -199,12 +199,8 @@ enum ArtType {
 
 model ArtRequest {
   art_request_id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  // The artist receiving the commission
   artist_id String      @db.Uuid
   artist    UserProfile @relation("ArtistRequests", fields: [artist_id], references: [user_profile_id], onDelete: Cascade)
-
-  // The client sending the commission
   client_id String      @db.Uuid
   client    UserProfile @relation("ClientRequests", fields: [client_id], references: [user_profile_id], onDelete: Cascade)
 

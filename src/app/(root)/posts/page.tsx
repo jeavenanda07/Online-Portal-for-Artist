@@ -53,20 +53,12 @@ const PostsPage = async () => {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "linear-gradient(135deg, #050a05 0%, #0a140a 50%, #050a05 100%)" }}
+      className="min-h-screen "
     >
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: "linear-gradient(#22c55e 1px,transparent 1px),linear-gradient(90deg,#22c55e 1px,transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
       <div className="relative z-10 max-w-[680px] mx-auto px-4 py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-white">Community Feed</h1>
-          <p className="text-sm mt-1" style={{ color: "#4b5563" }}>
+          <h1 className="text-3xl font-black ">Community Feed</h1>
+          <p className="text-sm mt-1">
             {posts.length} public post{posts.length !== 1 ? "s" : ""} from the community
           </p>
         </div>
@@ -75,7 +67,7 @@ const PostsPage = async () => {
           <div className="flex flex-col items-center justify-center py-24 rounded-2xl"
             style={{ border: "2px dashed #1a2e1a" }}>
             <AiOutlineMessage size={32} style={{ color: "#1a2e1a" }} />
-            <p className="font-bold text-white mt-4">No posts yet</p>
+            <p className="font-bold  mt-4">No posts yet</p>
             <p className="text-xs mt-1" style={{ color: "#4b5563" }}>
               Be the first to share something with the community.
             </p>

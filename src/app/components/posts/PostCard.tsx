@@ -103,8 +103,7 @@ export const PostCard = ({
   };
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all duration-300"
-      style={{ background: "#0d0d0d", border: "1px solid #1a2e1a" }}
+      className="rounded-2xl overflow-hidden transition-all duration-300 bg-primary"
       onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(34,197,94,0.25)")}
       onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#1a2e1a")}
     >

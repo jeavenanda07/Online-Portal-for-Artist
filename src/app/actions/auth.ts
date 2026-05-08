@@ -102,3 +102,10 @@ export async function loginAction(formData: FormData) {
 
   return { success: true };
 }
+
+export const isSessionTrue = async () => {
+   const session = await getSession();
+
+
+  return session !== null;
+}

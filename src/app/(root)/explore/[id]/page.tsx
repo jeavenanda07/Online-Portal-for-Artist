@@ -52,7 +52,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
     <div
       className="min-h-screen max-w-[1890px] w-full -mt-4 m-auto"
     >
-      {/* Grid overlay */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -65,8 +64,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
         <GoBackBtn />
 
         <div className="mt-6 lg:flex gap-10">
-
-          {/* ── LEFT ── */}
           <div className="flex-1 min-w-0">
             <div
               className="w-full rounded-2xl overflow-hidden flex items-center justify-center bg-primary border-1 border-primary-line"
@@ -76,14 +73,12 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
               }}
             >
               {art.status === "For Sale" ? (
-                // Watermarked + right-click disabled for paid artwork
                 <WatermarkedImage
                   src={art.art_file || "/placeholder-img.png"}
                   alt={art.artwork_title || "art preview"}
                   artistName={author?.full_name || author?.username || "Artist"}
                 />
               ) : (
-                // Clean image for free or not-for-sale
                 <Image
                   width={900}
                   height={680}
@@ -94,9 +89,7 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                 />
               )}
             </div>
-
-            {/* Reaction row */}
-            <div className="flex justify-between items-center mt-5 px-1">
+             <div className="flex justify-between items-center mt-5 px-1">
               <ul className="flex gap-6">
                 <li
                   className="flex items-center gap-2 cursor-pointer transition-colors group"
@@ -116,10 +109,8 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
               <Menu art={art} />
             </div>
 
-            {/* Divider */}
             <div className="mt-5 mb-6 h-px bg-primary-line" />
 
-            {/* Title & description */}
             <div className="space-y-3 px-1">
               <div className="flex items-start justify-between gap-4">
                 <h2 className="text-2xl font-black leading-tight">{art.artwork_title}</h2>
@@ -138,7 +129,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
               )}
             </div>
 
-            {/* Author row */}
             <div
               className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl bg-primary"
             >
@@ -177,7 +167,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
             </div>
 
-            {/* Tags */}
             {art.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-5 px-1">
                 {art.tags.map((tag: string, i: number) => (
@@ -213,7 +202,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
           </div>
 
-          {/* ── RIGHT SIDEBAR ── */}
           <div className="lg:w-80 shrink-0 mt-8 lg:mt-0 space-y-4">
             <div
               className="rounded-2xl p-5 bg-primary"
@@ -236,12 +224,6 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                   >
                     Buy Now
                   </button>
-                  {/* <button
-                    className="w-full py-3 rounded-xl font-black text-sm mt-2 transition-all"
-                    style={{ background: "transparent", color: "#4ade80", border: "1px solid #1a2e1a" }}
-                  >
-                    Add to Cart
-                  </button> */}
                 </>
               ) : art.status === "Free Download" ? (
                 <DownloadButton artworkId={id} />

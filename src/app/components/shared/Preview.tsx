@@ -15,7 +15,6 @@ import artList from "@/data/artlist.json"
 
 const ArtPreview = ({artId} : {artId: Number}) => {
   const art = artList.find(item => item.id === artId)
-
   return (
     <div className=' max-w-screen-2xl mx-auto md:flex gap-18'>
       <div className='md:w-[80%] relative'>

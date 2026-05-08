@@ -26,9 +26,11 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
   "Free Download": { bg: "rgba(59,130,246,0.1)",  text: "#60a5fa", dot: "#3b82f6" },
 };
 
+
 export default function ArtList({ art }: ArtListProps) {
   const author = art.user_profile;
 
+  console.log(art)
   return (
     <div className="mb-4 w-full break-inside-avoid relative">
       <div className="art-item-wrapper rounded-md overflow-hidden relative group">
@@ -79,10 +81,16 @@ export default function ArtList({ art }: ArtListProps) {
                 <p>0</p>
               </div>
             </section>
-            <div className="flex items-center gap-2 bg-orange-600 w-fit px-2 rounded-full py-1 text-xs">
-              <IoCartOutline />
-              <p>{art.sold}</p>
-            </div>
+       
+              {
+                art?.status === "For Sale" &&
+                <div className="flex items-center gap-2 bg-orange-600 w-fit px-2 rounded-full py-1 text-xs">
+                      <IoCartOutline />
+                <p>{art.sold}</p>
+                </div>
+              }
+
+            
           </section>
         </div>
 

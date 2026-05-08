@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Check, Loader2, X, Lock, Globe, BookMarked, FolderPlus } from "lucide-react";
 import { useUserData } from "@/hooks/useUserData";
 import { notify } from "@/utils/toastHelper";
+import Link from "next/link";
 
 interface Gallery {
   id: string;
@@ -69,6 +70,8 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
 
     fetchData();
   }, [isOpen, userDetails?.user_profile_id, artworkId]);
+
+  console.log("userDetails", userDetails())
 
   const handleToggleSave = async (galleryId: string) => {
     setSavingId(galleryId);
@@ -160,12 +163,9 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-5 max-h-[55vh] overflow-y-auto space-y-3">
-
-          {/* Create new gallery toggle */}
-          <button
-            onClick={() => setShowCreate((p) => !p)}
+          <Link
+            href="/"
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all"
             style={{
               background: showCreate ? "rgba(34,197,94,0.08)" : "#0d0d0d",
@@ -174,10 +174,9 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
             }}
           >
             <FolderPlus size={15} />
-            Create new gallery
-          </button>
+              Create new gallerys
+          </Link>
 
-          {/* Inline create form */}
           {showCreate && (
             <div
               className="rounded-xl p-4 space-y-3"
