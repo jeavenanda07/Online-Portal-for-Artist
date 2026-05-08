@@ -125,7 +125,7 @@ const ProfileMenu = ({ handleLogOut }: ProfileMenuProps) => {
         </div>
 
         <div className="p-4 space-y-1">
-          <MenuLink href="/profile" icon={<User size={16}/>} label="My Portfolio" />
+          <MenuLink href={`/profile/${userData?.username?.replace(/^@/, '')}`}  icon={<User size={16}/>} label="My Portfolio" />
           <MenuLink href="/my-purchases" icon={<ShoppingBag size={16}/>} label="Purchases" />
           
           <div className="h-px bg-white/5 my-2 mx-4" />
