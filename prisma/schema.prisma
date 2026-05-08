@@ -135,16 +135,23 @@ model PostComment {
 }
 
 model Gallery {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_profile_id String           @db.Uuid
-  user_profile    UserProfile      @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
-  title           String
-  slug            String           @unique
-  description     String?
-  visibility      Visibility       @default(public)
-  artworks        GalleryArtwork[] // Relation to the junction table
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
+  id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_profile_id String @db.Uuid
+
+  user_profile UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+
+  title       String
+  slug        String  @unique
+  description String?
+
+  cover_image String?
+
+  visibility galleryVisibility @default(public)
+
+  artworks GalleryArtwork[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model GalleryArtwork {
@@ -156,4 +163,9 @@ model GalleryArtwork {
   added_at   DateTime @default(now())
 
   @@id([gallery_id, artwork_id]) // Composite Primary Key
+}
+
+enum galleryVisibility {
+  public
+  private
 }

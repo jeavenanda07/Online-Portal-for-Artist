@@ -1,69 +1,169 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import GalleryCard from "@/app/components/profile/gallery/GalleryCard";
+import { useParams } from "next/navigation";
 import GalleryModal from "@/app/components/profile/gallery/GalleryModal";
-import { getData } from '@/utils/storage';
-import {CreateGalleryData} from "@/types/gallery"
 import Image from "next/image";
+import { FolderOpen, Plus, Lock } from "lucide-react";
+import { getSession } from "@/app/actions/auth";
+import {getUserProfile} from "@/app/actions/userProfile"
 
+interface Gallery {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  visibility: "public" | "private";
+  cover_image?: string;
+  created_at: string;
+}
+
+// ─── Skeleton Card ────────────────────────────────────────────
+const GalleryCardSkeleton = () => (
+  <div className="relative h-64 rounded-2xl overflow-hidden border border-white/5 bg-zinc-900/50 animate-pulse">
+    <div className="absolute inset-0 bg-zinc-800" />
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+    <div className="absolute bottom-5 left-5 right-5 flex justify-between items-end">
+      <div className="space-y-2">
+        <div className="h-2.5 w-12 rounded-full bg-[#00d26a]/20" />
+        <div className="h-4 w-32 rounded-md bg-white/10" />
+      </div>
+      <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/10" />
+    </div>
+  </div>
+);
 
 const GalleryPage = () => {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [galleryData, setGalleryData] = useState<CreateGalleryData[]>([]);;
+  const params = useParams();
+  const profileId = params?.id as string;
 
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [galleryData, setGalleryData] = useState<Gallery[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    const data = getData<CreateGalleryData[]>('gallery');
-    if (data) {
-      setGalleryData(data);
-    } else {
-      setGalleryData([]);
-    }
-  }, []); 
+    if (!profileId) return;
+    
+   
+
+    const init = async () => {
+      const userAcc = await getUserProfile(`@${profileId}`)
+      console.log("res", params)
+      try {
+        setLoading(true);
+
+        const session = await getSession();
+        const owner = session?.username?.replace("@", "") === profileId;
+        setIsOwner(owner);
+
+        const res = await fetch(`/api/gallery/get?userId=${userAcc?.user_profile_id}`);
+        if (!res.ok) throw new Error("Failed to fetch galleries");
+        const data = await res.json();
+
+        // ✅ Step 3: filter with the LOCAL `owner` variable, not the stale `isOwner` state
+        setGalleryData(
+          owner ? data : data.filter((g: Gallery) => g.visibility === "public")
+        );
+
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [profileId]); // ✅ single effect, single dep
+
+  // ... rest of your JSX unchanged // re-fetch when ownership is confirmed
 
   return (
     <div>
-      <h4 className="text-xl font-bold -mt-6">Gallery</h4>
+      <div className="flex items-center justify-between -mt-6 mb-6">
+        <h4 className="text-xl font-bold">Gallery</h4>
+        {/* Only show collection count badge for visitors */}
+        {!isOwner && !loading && (
+          <span className="text-xs text-zinc-500 font-medium">
+            {galleryData.length} public collection{galleryData.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
 
-      <GalleryModal isOpen={isCreateOpen}  onClose={() => setIsCreateOpen(false)} galleryData={galleryData}/>
+      <GalleryModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
 
-      {/* List of Gallery Card */}
-      <div className="flex gap-4 flex-wrap">
-        <div className="shop-card mt-4 h-70 p-2 w-90 bg-primary rounded-sm opacity-80 ease-in-out duration-200 hover:opacity-100 cursor-pointer">
-          <div className="w-full h-full cursor-pointer">
-            <div>
-              <Image
-                height={120}
-                width={120}
-                className="rounded-md object-cover h-50 w-100"
-                src="https://i.pinimg.com/736x/a1/f2/82/a1f28223598a486427a9e9cf5416fc24.jpg"
-                alt=""
-              />
-            </div>
-            <div className="flex items-center gap-2 mt-2 px-2"></div>
-            <div className="flex mt-2 px-2 pb-1">
-              <p className="text-bold mr-2">All</p>
-              <p className="opacity-50">
-                <b>54</b>
-              </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {/* ── Skeletons ── */}
+        {loading && [...Array(3)].map((_, i) => <GalleryCardSkeleton key={i} />)}
+
+        {/* ── Gallery Cards ── */}
+        {!loading && galleryData.map((item) => (
+          <div
+            key={item.id}
+            className="group relative h-64 rounded-2xl overflow-hidden cursor-pointer border border-white/5 bg-zinc-900/50 hover:border-[#00d26a]/50 transition-all duration-300 shadow-xl"
+          >
+            <Image
+              fill
+              className="object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+              src={item.cover_image || "/placeholder.jpg"}
+              alt={item.title}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+            {/* Private badge — only visible to owner */}
+            {isOwner && item.visibility === "private" && (
+              <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-sm border border-white/10">
+                <Lock size={11} className="text-zinc-400" />
+                <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Private</span>
+              </div>
+            )}
+
+            <div className="absolute bottom-5 left-5 right-5 flex justify-between items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-[#00d26a] mb-1">
+                  Gallery
+                </p>
+                <h4 className="text-xl font-bold text-white line-clamp-1">
+                  {item.title}
+                </h4>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10 text-white shrink-0">
+                <FolderOpen size={18} />
+              </div>
             </div>
           </div>
-        </div>
-        
-        {
-          galleryData?.length > 0 &&  galleryData?.map((item, index) => <GalleryCard {...item} key={index}/>)
-        }
+        ))}
 
-        {/* Create new art shop button */}
-        <div className="mt-4 shop-card w-90 h-70 bg-primary rounded-sm cursor-pointer">
-          <div onClick={() => setIsCreateOpen(true)} className="opacity-50 hover:opacity-100 duration-200 ease-in-out">
-            <p className="text-center mt-25 text-5xl">+</p>
-            <p className="text-center">
-              <b>Create new Art Shop</b>
+        {/* ── Empty state for visitors ── */}
+        {!loading && !isOwner && galleryData.length === 0 && (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center mb-4">
+              <FolderOpen size={28} className="text-zinc-600" />
+            </div>
+            <p className="text-zinc-500 font-medium">No public collections yet.</p>
+          </div>
+        )}
+
+        {/* ── Create card — owner only ── */}
+        {!loading && isOwner && (
+          <div
+            onClick={() => setIsCreateOpen(true)}
+            className="group relative h-64 rounded-2xl overflow-hidden cursor-pointer border border-dashed border-white/10 bg-zinc-900/30 hover:border-[#00d26a]/50 hover:bg-zinc-900/60 transition-all duration-300 shadow-xl flex flex-col items-center justify-center gap-3"
+          >
+            <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 group-hover:border-[#00d26a]/50 group-hover:bg-[#00d26a]/10 flex items-center justify-center transition-all duration-300">
+              <Plus size={28} className="text-white/40 group-hover:text-[#00d26a] transition-colors duration-300" />
+            </div>
+            <p className="text-sm font-bold text-white/40 group-hover:text-white/80 uppercase tracking-widest transition-colors duration-300">
+              Create new Collections
             </p>
           </div>
-        </div>
+        )}
+
       </div>
     </div>
   );

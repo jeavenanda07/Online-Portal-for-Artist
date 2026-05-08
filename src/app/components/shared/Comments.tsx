@@ -27,7 +27,7 @@ const Comments = ({
  
   return (
     <div className='flex gap-4 text-sm'>
-        <ProfileIcon id={user?.id} profile={user?.profile_picture}/>
+        {/* <ProfileIcon username=""/> */}
 
         <div className='flex flex-col gap-2 w-[90%]'>
             <div className='bg-primary border-2 border-primary-line p-4 rounded-md flex flex-col gap-2'>
