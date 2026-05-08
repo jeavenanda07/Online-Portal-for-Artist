@@ -5,7 +5,6 @@ import Modal from "../../ui/Modal";
 import CreateGalleryModal from "./CreateGalleryModal";
 import GalleryDetailsView from "./GalleryDetailsView";
 import Image from "next/image";
-import { getSession } from "@/app/actions/auth";
 
 import {
   Plus,
@@ -14,6 +13,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 
+// Replace the Gallery interface in GalleryModal.tsx with this
 interface Artwork {
   artwork_id: string;
   artwork_title: string;
@@ -66,25 +66,19 @@ const GalleryModal = ({
     const fetchGalleries = async () => {
       try {
         setLoading(true);
-        const session = await getSession();
-        if (!session) return;
-    
-        const profileRes = await fetch(`/api/profile/get?username=${session.username?.replace(/^@/, "")}`);
-        const profileData = await profileRes.json();
-        const user_profile_id = profileData.profile?.user_profile_id;
-        if (!user_profile_id) return;
-    
-        // ✅ Use /api/gallery/user to get _count
-        const res = await fetch(`/api/gallery/user?user_profile_id=${user_profile_id}`);
+        // Use /api/gallery/user to get counts — requires user_profile_id
+        // Fall back to /api/gallery/get if no user context needed
+        const res = await fetch("/api/gallery/get");
         if (!res.ok) throw new Error("Failed to fetch galleries");
         const data = await res.json();
-        setGalleryData(data.galleries ?? []); // ✅ data.galleries not data
+        setGalleryData(data);
       } catch (error) {
         console.error(error);
       } finally {
         setLoading(false);
       }
     };
+
   useEffect(() => {
 
     if (isOpen) {
