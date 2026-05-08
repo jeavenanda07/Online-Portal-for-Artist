@@ -80,7 +80,6 @@ export default async function Layout({
     myDbId = me?.user_profile_id ?? null;
   }
 
-  // DEFAULT BANNER BASED ON THEME
   const defaultBanner =
     theme === "light"
       ? "/banner-light-mode.jpg"

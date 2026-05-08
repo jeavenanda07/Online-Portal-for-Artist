@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Check, Loader2, X, Lock, Globe, BookMarked, FolderPlus } from "lucide-react";
 import { useUserData } from "@/hooks/useUserData";
 import { notify } from "@/utils/toastHelper";
+import Link from "next/link";
 
 interface Gallery {
   id: string;
@@ -133,9 +134,7 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
       setCreating(false);
     }
   };
-
   if (!isOpen) return null;
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -164,8 +163,8 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
         <div className="p-5 max-h-[55vh] overflow-y-auto space-y-3">
 
           {/* Create new gallery toggle */}
-          <button
-            onClick={() => setShowCreate((p) => !p)}
+          <Link
+            href={`/profile/${userDetails?.username.replace('@', '')}/gallery`}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all"
             style={{
               background: showCreate ? "rgba(34,197,94,0.08)" : "#0d0d0d",
@@ -174,10 +173,9 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
             }}
           >
             <FolderPlus size={15} />
-            Create new gallery
-          </button>
+            Create new gallerydss
+          </Link>
 
-          {/* Inline create form */}
           {showCreate && (
             <div
               className="rounded-xl p-4 space-y-3"
@@ -229,10 +227,8 @@ export default function SaveToCollectionModal({ isOpen, onClose, artworkId }: Pr
             </div>
           )}
 
-          {/* Divider */}
           <div className="h-px" style={{ background: "#1a2e1a" }} />
 
-          {/* Gallery list */}
           {loading ? (
             <div className="flex flex-col gap-2">
               {[...Array(3)].map((_, i) => (

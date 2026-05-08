@@ -34,7 +34,6 @@ export default function PurchaseDetailModal({ data, onClose }: Props) {
           </div>
 
           <div className="p-8 space-y-8">
-            {/* Info Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               <InfoItem icon={<Calendar size={14}/>} label="Date" value={data.date} />
               <InfoItem icon={<Wallet size={14}/>} label="Amount" value={`₱${data.amount.toLocaleString()}`} />
@@ -49,15 +48,12 @@ export default function PurchaseDetailModal({ data, onClose }: Props) {
               <InfoItem label="Payment" value={data.paymentStatus} isCaps color="text-green-400" />
             </div>
 
-            {/* Notes Section */}
             <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
               <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-2">Notes / Remarks</p>
               <p className="text-sm text-zinc-300 leading-relaxed italic">"{data.notes || "No special remarks provided."}"</p>
             </div>
 
-            {/* Dynamic Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/5">
-              {/* Digital Specific: Download Button */}
               {isDigital && data.paymentStatus === "paid" && (
                 <button className="flex-1 bg-green-400 hover:bg-green-500 text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-400/20">
                   <Download size={16} /> Download Assets

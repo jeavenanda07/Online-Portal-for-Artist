@@ -1,86 +1,33 @@
-// import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
-// import { CiImageOn } from "react-icons/ci";
-// import Modal from "@/app/components/ui/Modal";
+'use client';
 
+import Modal from './Modal';
+import { IoArrowBack } from "react-icons/io5";
+import { useState } from 'react';
 
-// interface CheckoutProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-// }
-
-// const Checkout = ({ isOpen, onClose }: CheckoutProps) => {
-//   return (
-//     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1180px] w-full py-4 my-auto rounded-md">
-//       <div className='flex  gap-4 px-6 w-[50em] text-white mx-auto justify-between'>
-//         <div onClick={onClose} className="flex items-center cursor-pointer">
-//          <MdOutlineKeyboardArrowLeft className="text-sm" />
-//          <p >Back</p>
-//         </div>
-//         <div className="">
-//          <h2 className="">CHECKOUT</h2>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-2 h-[520px] w-[50em] mx-auto bg-primary mt-6 mb-10 text-base text-black rounded-md">
-//         <div className="py-6 px-20 gap-10 mt-8">
-//           <p className="text-center">Choose Payment Method</p>
-
-//        <div className="mt-6">
-//         <div className="mx-auto w-fit border-1 border-primary-line px-12 flex flex-col items-center justify-center rounded-md p-4 cursor-pointer">
-//           <img className="h-7 w-7" src="https://images.seeklogo.com/logo-png/52/1/gcash-logo-png_seeklogo-522261.png" alt="GCash Logo"/>
-//           <p className="font-bold mt-2">GCash</p>
-//         </div>
-
-//           <p className="text-sm mt-25 text-center">You’ll be redirected to GCash to complete this payment.</p>
-//         </div>
-//       </div>
-
-//       <div className= "bg-secondary rounded-md p-6 text-sm ">
-//         <h2>Summary</h2>
-//         <hr className="opacity-50" />
-//         <div className="flex justify-between mt-4 text-sm">
-//           <p>Machine Gun car <span className="font-bold">by William Gomez</span></p>
-//           <p className="font-bold">$10</p>
-//         </div>
-//         <div>
-//           <img className="mt-6"src="https://i.pinimg.com/1200x/1b/08/af/1b08af4eab12bd921dc3541ccf6a10b1.jpg" alt="Cat" />
-//         </div>
-//           <p className="mt-2">1 downloaded file</p>
-//           <div className="flex gap-2 mt-2 text-sm opacity-50">
-//             <CiImageOn className="h-10 w-10"/>
-//             <p>Machine_gun_car.jpg <br />
-//               4040 x 2312 - 5.12mb</p>  
-//         </div>
-//         <hr className="mt-4 opacity-50" />
-//         <div className="flex justify-between mt-2 text-xs">
-//           <p>Total</p>
-//           <p>$10</p>
-//         </div>
-//         <button className=" rounded-md bg-green-500 text-white w-full mt-3 cursor-pointer p-2">Pay with Gcash</button>
-//       </div>
-//     </div>
-//   </Modal>
-
-//   )
-// }
-
-// export default Checkout
-
-
-"use client";
-
-import { useState } from "react";
-import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
-import { CiImageOn } from "react-icons/ci";
-import Modal from "@/app/components/ui/Modal";
-
-interface CheckoutProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface ArtObject {
+  artwork_id: string;
+  artwork_title: string;
+  art_file: string;
+  price: number;
+  stocks: number;
+  status: string;
+  user_profile: {
+    full_name: string;
+    username: string;
+  };
 }
 
-const Checkout = ({ isOpen, onClose }: CheckoutProps) => {
-  const [loading, setLoading] = useState(false);
+interface CheckOutProps {
+  isOpen: boolean;
+  onClose: () => void;
+  className?: string;
+  art: ArtObject; 
+}
+
+
+const Checkout = ({ isOpen, onClose, className, art }: CheckOutProps) => {
+  if (!art) return null;
+  const [loading, setLoading] = useState(false)
 
   const handlePayment = async () => {
     try {
@@ -123,80 +70,47 @@ const Checkout = ({ isOpen, onClose }: CheckoutProps) => {
       setLoading(false);
     }
   };
-  return ( 
-  <Modal isOpen={isOpen} onClose={onClose} className="max-w-[1180px] w-full py-4 my-auto rounded-md">
-  <div className='flex gap-4 px-6 w-[50em] text-foreground mx-auto justify-between'>
-    <div onClick={onClose} className="flex items-center cursor-pointer">
-      <MdOutlineKeyboardArrowLeft className="text-sm" />
-      <p>Back</p>
-    </div>
-    <div>
-      <h2 className="font-bold">CHECKOUT</h2>
-    </div>
-  </div>
 
-  {/* Main Container: Applied bg-primary and forced text-foreground */}
-  <div className="grid grid-cols-2 h-[520px] w-[50em] mx-auto bg-primary mt-6 mb-10 text-base text-foreground rounded-md overflow-hidden">
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px]   w-full flex flex-col">
+      <button onClick={onClose} className='flex gap-2 items-center'>
+        <IoArrowBack />
+        <p>Back</p>
+      </button>
 
-    {/* LEFT SIDE */}
-    <div className="py-6 px-20 gap-10 mt-8">
-      <p className="text-center">Choose Payment Method</p>
-
-      <div className="mt-6">
-        {/* Border changed to foreground with opacity for a clean look */}
-        <div className="mx-auto w-fit  border-foreground/20 px-12 flex flex-col items-center justify-center rounded-md p-4 cursor-pointer hover:bg-foreground/5 transition-colors">
-          <img
-            className="h-7 w-7"
-            src="https://images.seeklogo.com/logo-png/52/1/gcash-logo-png_seeklogo-522261.png"
-            alt="GCash Logo"
-          />
-          <p className="font-bold mt-2">GCash</p>
+      <div className="grid grid-cols-2 bg-white h-[520px] w-[50em] mx-auto gap-5 mt-6 mb-10 text-base text-black">
+        <div className="py-6 px-20 gap-10 mt-8">
+          <p className="text-center">Choose Payment Method</p>
+          <div className="mt-6 flex flex-col items-center">
+            <img className="h-7 w-7" src="https://images.seeklogo.com/logo-png/52/1/gcash-logo-png_seeklogo-522261.png" alt="GCash Logo"/>
+            <p className="font-bold mt-2">GCash</p>
+            <p className="text-sm mt-25 text-center">You’ll be redirected to GCash to complete this payment.</p>
+          </div>
         </div>
 
-        <p className="text-sm mt-24 text-center opacity-70">
-          You’ll be redirected to GCash to complete this payment.
-        </p>
-      </div>
-    </div>
-
-    {/* RIGHT SIDE: Summary Section */}
-    <div className="bg-foreground/5 rounded-md p-6 text-sm">
-      <h2 className="font-bold">Summary</h2>
-      <hr className="border-foreground/20 opacity-50" />
-
-      <div className="flex justify-between mt-4 text-sm">
-        <p>
-          Machine Gun car <span className="font-bold">by William Gomez</span>
-        </p>
-        <p className="font-bold">₱100</p>
-      </div>
-
-      <div>
-        <img
-          className="mt-6 rounded-md shadow-lg"
-          src="https://i.pinimg.com/1200x/1b/08/af/1b08af4eab12bd921dc3541ccf6a10b1.jpg"
-          alt="Cat"
-        />
-      </div>
-
-      <p className="mt-2">1 downloaded file</p>
-
-      <div className="flex gap-2 mt-2 text-sm opacity-60">
-        <CiImageOn className="h-10 w-10" />
-        <p>
-          Machine_gun_car.jpg <br />
-          4040 x 2312 - 5.12mb
-        </p>
-      </div>
-
-      <hr className="mt-4 border-foreground/20 opacity-50" />
-
-      <div className="flex justify-between mt-2 text-xs">
-        <p>Total</p>
-        <p className="font-bold text-base">₱100</p>
-      </div>
-
-      <button
+        <div className="bg-[#F2F2F2] p-6">
+          <h2>Summary</h2>
+          <hr className="mt-4 opacity-50" />
+          <div className="flex justify-between mt-4 text-sm">
+            {/* DYNAMIC DATA HERE */}
+            <p>{art.artwork_title} <span className="font-bold">by {art.user_profile.full_name}</span></p>
+            <p className="font-bold">₱{art.price}</p>
+          </div>
+          <div>
+            <img 
+              className="mt-6 w-full h-40 object-cover rounded-lg" 
+              src={art.art_file} 
+              alt={art.artwork_title} 
+            />
+          </div>
+          <p className="mt-2 text-xs opacity-70">1 downloadable</p>
+          
+          <hr className="mt-4 opacity-50" />
+          <div className="flex justify-between mt-2 text-sm font-bold">
+            <p>Total</p>
+            <p>₱{art.price}</p>
+          </div>
+          <button
         onClick={async () => {
           try {
             const res = await fetch("/api/create-gcash-payment", {
@@ -220,11 +134,10 @@ const Checkout = ({ isOpen, onClose }: CheckoutProps) => {
       >
         Pay with Gcash
       </button>
-    </div>
-  </div>
-</Modal>
- );
-
+        </div>
+      </div>
+    </Modal>
+  );
 };
 
-export default Checkout;
+export default Checkout

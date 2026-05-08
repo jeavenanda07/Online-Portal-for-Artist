@@ -1,5 +1,4 @@
-import { FaRegHeart } from "react-icons/fa";
-import { FaRegCommentAlt } from "react-icons/fa";
+import { FaRegHeart, FaRegCommentAlt } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { Package, Tag } from "lucide-react";
 import Image from "next/image";
@@ -8,8 +7,8 @@ import GoBackBtn from "@/app/components/ui/GoBackBtn";
 import Menu from "@/app/components/preview/Menu";
 import { prisma } from "@/lib/prisma";
 import ProfileIcon from "@/app/components/ui/ProfileIcon";
-import DownloadButton from "@/app/components/ui/DownloadButton";
 import WatermarkedImage from "@/app/components/ui/WatermarkedImage";
+import BuyButtonSection from "@/app/components/ui/BuySectionButton"; 
 
 async function getArtwork(id: string) {
   try {
@@ -47,11 +46,9 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   const author = art.user_profile;
   const status = statusColors[art.status] || statusColors["Not for Sale"];
-
   return (
-    <div
-      className="min-h-screen max-w-[1890px] w-full -mt-4 m-auto"
-    >
+    <div className="min-h-screen max-w-[1890px] w-full -mt-4 m-auto">
+      {/* Grid Background */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -66,11 +63,8 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
         <div className="mt-6 lg:flex gap-10">
           <div className="flex-1 min-w-0">
             <div
-              className="w-full rounded-2xl overflow-hidden flex items-center justify-center bg-primary border-1 border-primary-line"
-              style={{
-                minHeight: "420px",
-                maxHeight: "680px",
-              }}
+              className="w-full rounded-2xl overflow-hidden flex items-center justify-center bg-primary border border-primary-line"
+              style={{ minHeight: "420px", maxHeight: "680px" }}
             >
               {art.status === "For Sale" ? (
                 <WatermarkedImage
@@ -85,23 +79,17 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                   src={art.art_file || "/placeholder-img.png"}
                   alt={art.artwork_title || "art preview"}
                   className="object-contain w-full h-full"
-                  style={{ maxHeight: "680px" }}
                 />
               )}
             </div>
-             <div className="flex justify-between items-center mt-5 px-1">
+
+            <div className="flex justify-between items-center mt-5 px-1">
               <ul className="flex gap-6">
-                <li
-                  className="flex items-center gap-2 cursor-pointer transition-colors group"
-                  style={{ color: "#4b5563" }}
-                >
+                <li className="flex items-center gap-2 cursor-pointer transition-colors group text-zinc-500">
                   <FaRegHeart className="group-hover:text-red-400 transition-colors" size={18} />
                   <span className="text-sm font-bold">{art.likes_count}</span>
                 </li>
-                <li
-                  className="flex items-center gap-2 cursor-pointer"
-                  style={{ color: "#4b5563" }}
-                >
+                <li className="flex items-center gap-2 cursor-pointer text-zinc-500">
                   <FaRegCommentAlt size={16} />
                   <span className="text-sm font-bold">0</span>
                 </li>
@@ -113,7 +101,7 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
 
             <div className="space-y-3 px-1">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-2xl font-black leading-tight">{art.artwork_title}</h2>
+                <h2 className="text-2xl font-black">{art.artwork_title}</h2>
                 <span
                   className="shrink-0 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg"
                   style={{ background: status.bg, color: status.text }}
@@ -123,133 +111,61 @@ const ArtPreview = async ({ params }: { params: Promise<{ id: string }> }) => {
                 </span>
               </div>
               {art.description && (
-                <p className="text-sm leading-relaxed">
-                  {art.description}
-                </p>
+                <p className="text-sm leading-relaxed text-zinc-400">{art.description}</p>
               )}
             </div>
 
-            <div
-              className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl bg-primary"
-            >
+            {/* Author Section */}
+            <div className="flex items-center justify-between mt-6 px-4 py-4 rounded-2xl bg-primary">
               <div className="flex items-center gap-3">
-                {author?.avatar_pic ? (
-                  <ProfileIcon username={author?.username} email={undefined} />
-                ) : (
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-sm"
-                  >
-                    {author?.full_name?.[0] || "A"}
-                  </div>
-                )}
+                <ProfileIcon username={author?.username} />
                 <div>
-                  <p className="font-bold  text-sm">
-                    {author?.full_name || author?.username}
-                  </p>
-                  <p className="text-xs">0 followers</p>
+                  <p className="font-bold text-sm">{author?.full_name || author?.username}</p>
+                  <p className="text-xs text-zinc-500">Artist</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <p className="text-xs hidden sm:block" style={{ color: "#4b5563" }}>
-                  {new Date(art.created_at).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-                <button
-                  className="px-4 py-1.5 rounded-lg text-xs font-black transition-all"
-                  style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }}
-                >
-                  Follow
-                </button>
-              </div>
+              <p className="text-xs text-zinc-500">
+                {new Date(art.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
             </div>
 
-            {art.tags?.length > 0 && (
+            {/* Tags */}
+            {art.tags && art.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-5 px-1">
                 {art.tags.map((tag: string, i: number) => (
-                  <span
-                    key={i}
-                    className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold bg-green-400"
-                  >
+                  <span key={i} className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold bg-[#00d26a] text-black">
                     <Tag size={10} />
                     {tag}
                   </span>
                 ))}
               </div>
             )}
-
-            <div className="mt-6 h-px" style={{ background: "#1a2e1a" }} />
-
-            {/* Comments */}
-            <div className="mt-8 px-1">
-              <button className="flex items-center gap-2 mb-6" style={{ color: "#4b5563" }}>
-                <FaRegCommentAlt size={14} />
-                <span className="text-sm font-bold">0 Comments</span>
-                <MdKeyboardArrowDown size={18} />
-              </button>
-              <div
-                className="py-12 flex flex-col items-center justify-center rounded-2xl"
-                style={{ border: "2px dashed #1a2e1a" }}
-              >
-                <FaRegCommentAlt size={24} style={{ color: "#1a2e1a" }} />
-                <p className="text-xs mt-3 font-bold" style={{ color: "#4b5563" }}>
-                  No comments yet. Be the first.
-                </p>
-              </div>
-            </div>
           </div>
 
+          {/* Sidebar */}
           <div className="lg:w-80 shrink-0 mt-8 lg:mt-0 space-y-4">
-            <div
-              className="rounded-2xl p-5 bg-primary"
-            >
-              <p className="text-xs font-black uppercase tracking-widest mb-3">
-                Listing
-              </p>
-
-              {art.status === "For Sale" ? (
-                <>
-                  <p className="text-3xl font-black mb-1">
-                    ₱{art.price.toFixed(2)}
-                  </p>
-                  <div className="flex items-center gap-1.5 mb-5" >
-                    <Package size={13} />
-                    <span className="text-xs font-bold">{art.stocks} in stock</span>
-                  </div>
-                  <button
-                    className="w-full py-3 rounded-xl font-black text-sm transition-all hover:scale-[1.02] bg-green-400 cursor-pointer"
-                  >
-                    Buy Now
-                  </button>
-                </>
-              ) : art.status === "Free Download" ? (
-                <DownloadButton artworkId={id} />
-              ) : (
-                <p className="text-sm font-bold" style={{ color: "#4b5563" }}>
-                  This artwork is not for sale.
-                </p>
-              )}
+            <div className="rounded-2xl p-5 bg-primary border border-primary-line">
+              <p className="text-xs font-black uppercase tracking-widest mb-3">Listing</p>
+              
+              {/* INTERACTIVE COMPONENT HERE */}
+              <BuyButtonSection art={art} id={id}/>
             </div>
 
             {/* Details card */}
-            <div
-              className="rounded-2xl p-5 space-y-4 bg-primary"
-            >
-              <p className="text-xs font-black uppercase tracking-widest">
-                Details
-              </p>
+            <div className="rounded-2xl p-5 space-y-4 bg-primary border border-primary-line">
+              <p className="text-xs font-black uppercase tracking-widest">Details</p>
               {[
                 { label: "Type",   value: art.artwork_type },
                 { label: "Status", value: art.status },
                 { label: "Sold",   value: `${art.sold} sold` },
-                { label: "Likes",  value: art.likes_count },
                 { label: "Posted", value: new Date(art.created_at).toLocaleDateString() },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-center">
-                  <span className="text-xs font-bold " style={{ color: "#4b5563" }}>{label}</span>
+                  <span className="text-xs font-bold text-zinc-500">{label}</span>
                   <span className="text-xs font-black">{value}</span>
                 </div>
               ))}

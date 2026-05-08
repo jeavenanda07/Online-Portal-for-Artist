@@ -22,7 +22,7 @@ export async function POST() {
             line_items: [
               {
                 currency: "PHP",
-                amount: 10000, // ₱100
+                amount: 10000, 
                 name: "Machine Gun Car",
                 quantity: 1,
               },
@@ -38,8 +38,6 @@ export async function POST() {
     });
 
     const data = await response.json();
-
-    console.log("CHECKOUT SESSION:", data);
 
     return NextResponse.json(data);
   } catch (error) {

@@ -1,4 +1,4 @@
-export default function formatPostDate(dateInput: Date | string | undefined): string{
+export default function formatPostDate (dateInput: Date | string | undefined): string{
     if (!dateInput) return "";
     
     const now = new Date();
