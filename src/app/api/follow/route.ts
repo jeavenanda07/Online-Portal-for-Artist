@@ -47,6 +47,6 @@ export async function GET(req: NextRequest) {
       where: { follower_id_following_id: { follower_id: myId, following_id: targetUserId } },
     }),
   ]);
-
+  
   return NextResponse.json({ followersCount, followingCount, isFollowing: !!isFollowing });
 }
