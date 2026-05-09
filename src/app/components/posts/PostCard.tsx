@@ -101,6 +101,11 @@ export const PostCard = ({
     } catch { notify("Something went wrong.", "error"); }
     finally { setCommentLoading(false); }
   };
+
+  
+  console.log("avatar icon", post.author.avatar_pic)
+  console.log("author username", post.author.username.replace("@", ""))
+  console.log("author lang", author)
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all duration-300 bg-primary"
@@ -109,13 +114,13 @@ export const PostCard = ({
     >
       {/* Author header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
-        <Link href={`/profile/${author?.username?.replace(/^@/, "")}`} className="flex items-center gap-3 group">
-          {author?.avatar_pic ? (
-            <ProfileIcon username={author?.username?.replace(/^@/, "")}/>
+        <Link href={`/profile/${author?.username?.replace("@", "")}`} className="flex items-center gap-3 group">
+          {post?.author?.avatar_pic ? (
+            <ProfileIcon username={post?.author.username?.replace("@", "")}/>
           ) : (
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
               style={{ background: "#1a2e1a", color: "#4ade80" }}>
-              {author?.full_name?.[0] || "A"}
+              {post?.full_name?.[0] || "A"}
             </div>
           )}
           <div>
@@ -133,7 +138,7 @@ export const PostCard = ({
 
       {/* Content */}
       {post.content && (
-        <p className="px-5 pb-3 text-sm leading-relaxed" style={{ color: "#e5e7eb" }}>
+        <p className="px-5 pb-3 text-sm leading-relaxed " style={{ color: "#e5e7eb" }}>
           {post.content}
         </p>
       )}

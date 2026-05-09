@@ -10,6 +10,7 @@ interface ArtObject {
   art_file: string;
   price: number;
   stocks: number;
+  artwork_type: string;
   status: string;
   user_profile: {
     full_name: string;
@@ -30,46 +31,26 @@ const Checkout = ({ isOpen, onClose, className, art }: CheckOutProps) => {
   const [loading, setLoading] = useState(false)
 
   const handlePayment = async () => {
-    try {
-      setLoading(true);
+      try {
+        const res = await fetch("/api/create-gcash-payment", {
+          method: "POST",
+        });
 
-      const res = await fetch("/api/create-gcash-payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: 10000, // ₱100
-        }),
-      });
+        const data = await res.json();
+        const checkoutUrl = data?.data?.attributes?.checkout_url;
 
-      const data = await res.json();
-
-      console.log("FRONTEND RESPONSE:", data);
-
-      if (!res.ok) {
-        alert("Payment failed");
-        return;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
+        } else {
+          alert("Failed to redirect.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong.");
       }
-
-      const checkoutUrl =
-        data?.data?.attributes?.redirect?.checkout_url;
-
-      if (!checkoutUrl) {
-        alert("Failed to initiate payment.");
-        return;
-      }
-
-      // ✅ Redirect to GCash
-      window.location.href = checkoutUrl;
-
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
   };
+
+  console.log("art type", art.artwork_type)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px]   w-full flex flex-col">
@@ -110,30 +91,22 @@ const Checkout = ({ isOpen, onClose, className, art }: CheckOutProps) => {
             <p>Total</p>
             <p>₱{art.price}</p>
           </div>
-          <button
-        onClick={async () => {
-          try {
-            const res = await fetch("/api/create-gcash-payment", {
-              method: "POST",
-            });
 
-            const data = await res.json();
-            const checkoutUrl = data?.data?.attributes?.checkout_url;
-
-            if (checkoutUrl) {
-              window.location.href = checkoutUrl;
-            } else {
-              alert("Failed to redirect.");
-            }
-          } catch (err) {
-            console.error(err);
-            alert("Something went wrong.");
+          {art?.artwork_type == "Digital" 
+            ?   <button
+                  onClick={handlePayment}
+                  className="rounded-md bg-green-500 hover:bg-green-600 text-white w-full mt-3 cursor-pointer p-2 font-bold transition-all active:scale-95"
+                >
+                        Pay with Gcash
+                </button>
+              : <button
+              
+                className="rounded-md bg-green-500 hover:bg-green-600 text-white w-full mt-3 cursor-pointer p-2 font-bold transition-all active:scale-95"
+                >
+                  Ask for Inquiry
+                </button>
           }
-        }}
-        className="rounded-md bg-green-500 hover:bg-green-600 text-white w-full mt-3 cursor-pointer p-2 font-bold transition-all active:scale-95"
-      >
-        Pay with Gcash
-      </button>
+
         </div>
       </div>
     </Modal>

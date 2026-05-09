@@ -34,7 +34,7 @@ const ProfileIcon = ({ username, email }: Props) => {
     fetchUserData();
   }, [username]);
 
-  console.log("My Profile", profile);
+
 
   return (
     <Link

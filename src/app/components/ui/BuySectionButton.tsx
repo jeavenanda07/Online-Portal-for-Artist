@@ -8,7 +8,6 @@ import DownloadButton from "@/app/components/ui/DownloadButton";
 export default function BuyButtonSection({ art, id }: { art: any; id: string }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [artDetails, setArtDetails] = useState<any>(art)
-  console.log("art", artDetails)
 
   if (art.status === "For Sale") {
     return (
@@ -26,12 +25,12 @@ export default function BuyButtonSection({ art, id }: { art: any; id: string }) 
         >
           Buy Now
         </button>
+          <Checkout 
+              isOpen={isCheckoutOpen} 
+              onClose={() => setIsCheckoutOpen(false)} 
+              art={art}
+            />
 
-        <Checkout 
-          isOpen={isCheckoutOpen} 
-          onClose={() => setIsCheckoutOpen(false)} 
-          art={art}
-        />
       </>
     );
   }

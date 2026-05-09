@@ -76,7 +76,11 @@ const CommissionForm = ({ func, username }: Props) => {
   const handleFinalSubmit = async () => {
     if (!reviewData) return;
     setSubmitting(true);
-
+  
+    // 👇 Check what's actually being sent
+    console.log("uploadedImageUrls at submit:", uploadedImageUrls);
+    console.log("reviewData.uploadedImageUrls:", reviewData.uploadedImageUrls);
+  
     try {
       const res = await fetch("/api/commission/create", {
         method: "POST",
@@ -89,13 +93,12 @@ const CommissionForm = ({ func, username }: Props) => {
           budget: reviewData.budget,
           deadline: reviewData.deadline || null,
           tags: reviewData.tags,
-          referenceImages: uploadedImageUrls,
+          referenceImages: uploadedImageUrls, // from state, not reviewData
           shippingName: reviewData.shippingName,
           shippingAddress: reviewData.shippingAddress,
           shippingContact: reviewData.shippingContact,
         }),
-      });
-
+      })
       const data = await res.json();
 
       if (!res.ok) {
