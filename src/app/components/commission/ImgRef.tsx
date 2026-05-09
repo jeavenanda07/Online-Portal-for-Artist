@@ -8,13 +8,21 @@ import { notify } from "@/utils/toastHelper";
 
 interface ImgRefProps {
   images: { file: File; url: string }[];
-  setImages: React.Dispatch<React.SetStateAction<{ file: File; url: string }[]>>;
+  setImages: React.Dispatch<
+    React.SetStateAction<{ file: File; url: string }[]>
+  >;
   goNext: () => void;
   func: (value: boolean) => void;
   onUploadComplete: (urls: string[]) => void; // ✅ new — passes supabase URLs up
 }
 
-const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefProps) => {
+const ImgRef = ({
+  images,
+  setImages,
+  goNext,
+  func,
+  onUploadComplete,
+}: ImgRefProps) => {
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,10 +56,7 @@ const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefPro
         return;
       }
 
-      setImages((prev) => [
-        ...prev,
-        { file, url: URL.createObjectURL(file) },
-      ]);
+      setImages((prev) => [...prev, { file, url: URL.createObjectURL(file) }]);
     }
 
     // Reset input so same file can be re-selected if removed
@@ -73,10 +78,7 @@ const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefPro
       if (images.length >= 3) return;
       if (!file.type.startsWith("image/")) return;
       if (file.size > 5 * 1024 * 1024) return;
-      setImages((prev) => [
-        ...prev,
-        { file, url: URL.createObjectURL(file) },
-      ]);
+      setImages((prev) => [...prev, { file, url: URL.createObjectURL(file) }]);
     });
   };
 
@@ -110,7 +112,6 @@ const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefPro
       // ✅ Pass the real Supabase public URLs up to CommissionForm
       onUploadComplete(data.urls);
       goNext();
-
     } catch (err) {
       console.error(err);
       notify("Something went wrong during upload", "error");
@@ -121,13 +122,14 @@ const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefPro
 
   return (
     <div className="bg-secondary rounded-2xl p-6 w-full max-w-xl mx-auto">
-      <h4 className="font-black text-2xl text-white">Upload Reference Images</h4>
+      <h4 className="font-black text-2xl text-white">
+        Upload Reference Images
+      </h4>
       <p className="text-sm text-zinc-500 mt-2">
         Provide visual references to guide the artist. Max 3 images, 5MB each.
       </p>
 
       <form onSubmit={handleSubmitForm} className="mt-6">
-
         {/* Drop zone */}
         <div
           onDrop={handleDrop}
@@ -142,7 +144,9 @@ const ImgRef = ({ images, setImages, goNext, func, onUploadComplete }: ImgRefPro
             <p className="text-sm font-bold text-zinc-400 group-hover:text-white transition-colors">
               Click to upload or drag & drop
             </p>
-            <p className="text-xs text-zinc-600 mt-1">PNG, JPG, WEBP — max 5MB</p>
+            <p className="text-xs text-zinc-600 mt-1">
+              PNG, JPG, WEBP — max 5MB
+            </p>
           </label>
           <input
             className="hidden"

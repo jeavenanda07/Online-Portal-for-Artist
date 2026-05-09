@@ -5,6 +5,7 @@ import Modal from "../../ui/Modal";
 import CreateGalleryModal from "./CreateGalleryModal";
 import GalleryDetailsView from "./GalleryDetailsView";
 import Image from "next/image";
+import { getSession } from "@/app/actions/auth";
 
 import {
   Plus,
@@ -95,6 +96,7 @@ const GalleryModal = ({
     onClose();
   };
 
+  console.log("gallery", galleryData)
   return (
     <>
       <Modal
@@ -140,7 +142,6 @@ const GalleryModal = ({
         <div className="flex-1 overflow-hidden relative">
 
           {selectedFolder ? (
-
             <GalleryDetailsView
               folder={selectedFolder}
               onBack={() =>
@@ -218,7 +219,6 @@ const GalleryModal = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
                   {galleryData.map((folder) => (
-
                     <div
                       key={folder.id}
                       onClick={() =>
