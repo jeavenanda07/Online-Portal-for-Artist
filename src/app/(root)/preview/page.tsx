@@ -6,7 +6,6 @@ import { BsThreeDots } from "react-icons/bs";
 import ArtTypeCard from '@/app/components/preview/ArtTypeCard';
 import Comments from '@/app/components/shared/Comments';
 import ProfileIcon from '@/app/components/ui/ProfileIcon';
-import { Sidebar } from '@/app/components/preview/Sidebar';
 import { IoIosArrowForward } from "react-icons/io";
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
