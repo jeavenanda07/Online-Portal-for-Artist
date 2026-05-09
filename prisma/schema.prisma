@@ -62,6 +62,16 @@ model UserProfile {
   following       Follow[]      @relation("UserFollowers") // people I follow
   artist_requests ArtRequest[]  @relation("ArtistRequests") // commissions I received
   client_requests ArtRequest[]  @relation("ClientRequests") // commissions I sent
+  artwork_comments     ArtworkComment[]
+  artwork_likes        ArtworkLike[]
+  notifications_received Notification[]   @relation("NotificationRecipient")
+  notifications_sent     Notification[]   @relation("NotificationSender")
+  purchases_as_buyer   PurchasedArt[]     @relation("BuyerPurchases")
+  purchases_as_seller  PurchasedArt[]     @relation("SellerPurchases")
+  artwork_violations_reported   ArtworkViolationLog[] @relation("ArtworkReportedUser")
+  artwork_violations_filed      ArtworkViolationLog[] @relation("ArtworkReporter")
+  artist_violations_reported    ArtistViolationLog[]  @relation("ArtistReportedUser")
+  artist_violations_filed       ArtistViolationLog[]  @relation("ArtistReporter")
 }
 
 enum Visibility {
@@ -106,7 +116,10 @@ model Artwork {
   updated_at DateTime @updatedAt
 
   gallery_artworks GalleryArtwork[]
-  // comments        Comment[]   @relation("ArtworkComments")
+    artwork_comments     ArtworkComment[]
+  artwork_likes        ArtworkLike[]
+  purchases            PurchasedArt[]
+  violation_logs       ArtworkViolationLog[]  
 }
 
 model PostLike {
@@ -222,4 +235,186 @@ model ArtRequest {
   updated_at DateTime @updatedAt
 
   @@map("art_requests")
+}
+
+// ── Artwork Comment ───────────────────────────────────────────
+model ArtworkComment {
+  comment_id      String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  artwork_id      String      @db.Uuid
+  user_profile_id String      @db.Uuid
+  content         String      @db.VarChar(500)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  artwork      Artwork     @relation(fields: [artwork_id], references: [artwork_id], onDelete: Cascade)
+  user_profile UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+
+  @@map("artwork_comments")
+}
+
+// ── Artwork Like ──────────────────────────────────────────────
+model ArtworkLike {
+  like_id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  artwork_id      String   @db.Uuid
+  user_profile_id String   @db.Uuid
+  created_at      DateTime @default(now())
+
+  artwork      Artwork     @relation(fields: [artwork_id], references: [artwork_id], onDelete: Cascade)
+  user_profile UserProfile @relation(fields: [user_profile_id], references: [user_profile_id], onDelete: Cascade)
+
+  @@unique([artwork_id, user_profile_id]) // prevent duplicate likes
+  @@map("artwork_likes")
+}
+
+// ── Notification ──────────────────────────────────────────────
+enum NotificationType {
+  LIKE_POST
+  LIKE_ARTWORK
+  COMMENT_POST
+  COMMENT_ARTWORK
+  FOLLOW
+  COMMISSION_ACCEPTED
+  COMMISSION_REJECTED
+  COMMISSION_COMPLETED
+}
+
+model Notification {
+  notification_id String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Who receives the notification
+  recipient_id    String           @db.Uuid
+  recipient       UserProfile      @relation("NotificationRecipient", fields: [recipient_id], references: [user_profile_id], onDelete: Cascade)
+
+  // Who triggered the notification
+  sender_id       String           @db.Uuid
+  sender          UserProfile      @relation("NotificationSender", fields: [sender_id], references: [user_profile_id], onDelete: Cascade)
+
+  type            NotificationType
+  is_read         Boolean          @default(false)
+
+  // Optional references — only one will be set depending on type
+  post_id         String?          @db.Uuid
+  artwork_id      String?          @db.Uuid
+  art_request_id  String?          @db.Uuid
+
+  message         String?          // e.g. "liked your artwork"
+  created_at      DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+// ── Purchased Art ─────────────────────────────────────────────
+enum PurchaseStatus {
+  Pending
+  Completed
+  Cancelled
+  Refunded
+}
+
+model PurchasedArt {
+  purchase_id     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  buyer_id        String         @db.Uuid
+  buyer           UserProfile    @relation("BuyerPurchases", fields: [buyer_id], references: [user_profile_id], onDelete: Cascade)
+  seller_id       String         @db.Uuid
+  seller          UserProfile    @relation("SellerPurchases", fields: [seller_id], references: [user_profile_id], onDelete: Cascade)
+  artwork_id      String         @db.Uuid
+  artwork         Artwork        @relation(fields: [artwork_id], references: [artwork_id], onDelete: Cascade)
+
+  price_at_purchase Float        // snapshot of price at time of purchase
+  quantity        Int            @default(1)
+  total_amount    Float          // price_at_purchase * quantity
+
+  status          PurchaseStatus @default(Pending)
+  shipping_name    String?
+  shipping_address String?
+  shipping_contact String?
+
+  purchased_at    DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  @@map("purchased_arts")
+}
+
+// ── Artwork Violation Log ─────────────────────────────────────
+enum ArtworkViolationReason {
+  Copyright_Issue
+  NSFW
+  Abuse
+  Scam
+  Spam
+  Plagiarism
+  Other
+}
+
+enum ArtworkViolationStatus {
+  Pending
+  Reviewed
+  Warning_Issued
+  Suspended
+  Dismissed
+}
+
+model ArtworkViolationLog {
+  violation_log_id  String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  artwork_id        String                 @db.Uuid
+  artwork           Artwork                @relation(fields: [artwork_id], references: [artwork_id], onDelete: Cascade)
+
+  // Owner of the artwork
+  reported_user_id  String                 @db.Uuid
+  reported_user     UserProfile            @relation("ArtworkReportedUser", fields: [reported_user_id], references: [user_profile_id], onDelete: Cascade)
+
+  // User who filed the report
+  reported_by_id    String                 @db.Uuid
+  reported_by       UserProfile            @relation("ArtworkReporter", fields: [reported_by_id], references: [user_profile_id], onDelete: Cascade)
+
+  reason            ArtworkViolationReason
+  description       String?                @db.Text
+  status            ArtworkViolationStatus @default(Pending)
+
+  date_reported     DateTime               @default(now())
+  reviewed_at       DateTime?
+
+  @@map("artwork_violation_logs")
+}
+
+// ── Artist Violation Log ──────────────────────────────────────
+enum ArtistViolationReason {
+  Harassment
+  Scam
+  Fake_Identity
+  Spam
+  Hate_Speech
+  Fraud
+  Other
+}
+
+enum ArtistViolationStatus {
+  Pending
+  Reviewed
+  Warned
+  Suspended
+  Cleared
+}
+
+model ArtistViolationLog {
+  violation_log_id  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // User being reported
+  reported_user_id  String                @db.Uuid
+  reported_user     UserProfile           @relation("ArtistReportedUser", fields: [reported_user_id], references: [user_profile_id], onDelete: Cascade)
+
+  // User who filed the report
+  reported_by_id    String                @db.Uuid
+  reported_by       UserProfile           @relation("ArtistReporter", fields: [reported_by_id], references: [user_profile_id], onDelete: Cascade)
+
+  reason            ArtistViolationReason
+  description       String?               @db.Text
+  status            ArtistViolationStatus @default(Pending)
+
+  date_reported     DateTime              @default(now())
+  reviewed_at       DateTime?
+
+  @@map("artist_violation_logs")
 }
