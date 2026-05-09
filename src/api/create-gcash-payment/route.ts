@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-
 export async function POST() {
   try {
     const response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
@@ -38,7 +37,7 @@ export async function POST() {
     });
 
     const data = await response.json();
-
+    
     return NextResponse.json(data);
   } catch (error) {
     console.error("ERROR:", error);
