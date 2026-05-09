@@ -81,8 +81,6 @@ export default function ConversationsList({ onSelect, selectedId, activeTab, onT
     : [];
 
   const filtered = currentList.filter((r) => {
-    // Requests tab: show artist info (who I sent to)
-    // Incoming tab: show client info (who sent to me)
     const person = activeTab === "Requests" ? r.artist : r.client;
     return (
       r.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -95,8 +93,6 @@ export default function ConversationsList({ onSelect, selectedId, activeTab, onT
   console.log("requests", requests)
   return (
     <div className="w-full h-full bg-[#1C1D21] border-r border-white/5 flex flex-col">
-
-      {/* HEADER */}
       <div className="px-6 pt-8 pb-6 border-b border-white/5">
         <h2 className="text-2xl font-black text-white uppercase tracking-tighter">INBOX</h2>
         <p className="text-[10px] font-black text-[#00d26a] uppercase tracking-[0.3em] mt-1">
@@ -104,7 +100,6 @@ export default function ConversationsList({ onSelect, selectedId, activeTab, onT
         </p>
       </div>
 
-      {/* SEARCH */}
       <div className="px-6 pt-4 pb-3">
         <div className="relative group">
           <Search

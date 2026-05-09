@@ -36,7 +36,7 @@ export default function ChatPopUp({ isOpen, onClose, defaultTab, defaultRequestI
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} className="w-full sm:w-[95%] max-w-[1400px] h-full sm:h-[90vh]">
-      <div className="relative w-full h-full bg-[#141518] bg-red-500 sm:border border-white/5 sm:rounded-[3rem] shadow-2xl flex overflow-hidden">
+      <div className="relative w-full h-full bg-[#141518] sm:border border-white/5 sm:rounded-[3rem] shadow-2xl flex overflow-hidden">
 
         {/* SIDEBAR */}
         <div className={`${selectedId ? "hidden" : "flex"} md:flex w-full md:w-[380px] h-full flex-shrink-0 relative`}>

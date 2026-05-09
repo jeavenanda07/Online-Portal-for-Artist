@@ -8,10 +8,11 @@ import { useUserData } from "@/hooks/useUserData";
 import Modal from "@/app/components/ui/Modal";
 import { useState, useEffect, useRef } from "react";
 import CreatePost from "@/app/components/profile/CreatePost";
-import formatPostDate  from "@/utils/date";
+import formatPostDate from "@/utils/date";
 import { notify } from "@/utils/toastHelper";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { prisma } from "@/lib/prisma"
 
 interface Comment {
   comment_id: string;
@@ -24,7 +25,6 @@ interface Comment {
   };
 }
 
-// ── Skeleton ──────────────────────────────────────────────────
 const PostSkeleton = () => (
   <div className="w-full max-w-[800px] border border-primary-line bg-primary mx-auto p-4 rounded-2xl animate-pulse">
     <div className="flex justify-between items-center mb-4">
@@ -41,11 +41,11 @@ const PostSkeleton = () => (
   </div>
 );
 
-// ── Post Card ─────────────────────────────────────────────────
+
 const PostCard = ({
   details,
-  authorProfile,   // the profile owner's data
-  userDetails,     // the logged-in user's data
+  authorProfile, 
+  userDetails, 
   isMyAccount,
   onDelete,
   onUpdate,
@@ -71,7 +71,6 @@ const PostCard = ({
   const [editText, setEditText] = useState(details.content);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -82,21 +81,26 @@ const PostCard = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Fetch like count + comment count on mount
   useEffect(() => {
     if (!details.post_id) return;
     const fetchCounts = async () => {
       try {
         if (userDetails?.user_profile_id) {
-          const likeRes = await fetch(`/api/post/like/count?post_id=${details.post_id}&user_profile_id=${userDetails.user_profile_id}`);
+          const likeRes = await fetch(
+            `/api/post/like/count?post_id=${details.post_id}&user_profile_id=${userDetails.user_profile_id}`
+          );
           const likeData = await likeRes.json();
           setLikeCount(likeData.count ?? 0);
           setLiked(likeData.isLiked ?? false);
         }
-        const commRes = await fetch(`/api/post/comment?post_id=${details.post_id}`);
+        const commRes = await fetch(
+          `/api/post/comment?post_id=${details.post_id}`
+        );
         const commData = await commRes.json();
         setCommentCount(commData.comments?.length ?? 0);
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     };
     fetchCounts();
   }, [details.post_id, userDetails?.user_profile_id]);
@@ -112,44 +116,68 @@ const PostCard = ({
           setComments(data.comments ?? []);
           setFetchedComments(true);
         }
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     };
     fetchComments();
   }, [showComments, fetchedComments, details.post_id]);
 
   const handleLike = async () => {
-    if (!userDetails?.user_profile_id) { notify("Please log in to like.", "error"); return; }
+    if (!userDetails?.user_profile_id) {
+      notify("Please log in to like.", "error");
+      return;
+    }
     setLikeLoading(true);
     try {
       const res = await fetch("/api/post/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: details.post_id, user_profile_id: userDetails.user_profile_id }),
+        body: JSON.stringify({
+          post_id: details.post_id,
+          user_profile_id: userDetails.user_profile_id,
+        }),
       });
       const data = await res.json();
       setLiked(data.liked);
       setLikeCount(data.count);
-    } catch { notify("Something went wrong.", "error"); }
-    finally { setLikeLoading(false); }
+    } catch {
+      notify("Something went wrong.", "error");
+    } finally {
+      setLikeLoading(false);
+    }
   };
 
   const handleComment = async () => {
-    if (!userDetails?.user_profile_id) { notify("Please log in to comment.", "error"); return; }
+    if (!userDetails?.user_profile_id) {
+      notify("Please log in to comment.", "error");
+      return;
+    }
     if (!commentText.trim()) return;
     setCommentLoading(true);
     try {
       const res = await fetch("/api/post/comment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: details.post_id, user_profile_id: userDetails.user_profile_id, content: commentText }),
+        body: JSON.stringify({
+          post_id: details.post_id,
+          user_profile_id: userDetails.user_profile_id,
+          content: commentText,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) { notify("Failed to comment.", "error"); return; }
+      if (!res.ok) {
+        notify("Failed to comment.", "error");
+        return;
+      }
       setComments((prev) => [...prev, data.comment]);
       setCommentCount((prev) => prev + 1);
       setCommentText("");
-    } catch { notify("Something went wrong.", "error"); }
-    finally { setCommentLoading(false); }
+    } catch {
+      notify("Something went wrong.", "error");
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   return (
@@ -160,28 +188,41 @@ const PostCard = ({
           <ProfileIcon username={authorProfile?.username} />
           <div>
             <p className="text-sm font-bold">
-              {authorProfile?.full_name || authorProfile?.username || "Anonymous"}
+              {authorProfile?.full_name ||
+                authorProfile?.username ||
+                "Anonymous"}
             </p>
-            <p className="text-xs opacity-50">{formatPostDate(details.date_posted)}</p>
+            <p className="text-xs opacity-50">
+              {formatPostDate(details.date_posted)}
+            </p>
           </div>
         </div>
 
         {/* 3-dot menu — only for post owner */}
         {isMyAccount && (
           <div className="relative" ref={menuRef}>
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="px-2 font-bold hover:opacity-50">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="px-2 font-bold hover:opacity-50"
+            >
               ...
             </button>
             {isMenuOpen && (
               <div className="absolute right-0 mt-2 w-32 bg-background border border-primary-line rounded-xl shadow-xl z-20 p-1">
                 <button
-                  onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
+                  onClick={() => {
+                    setIsEditing(true);
+                    setIsMenuOpen(false);
+                  }}
                   className="w-full text-left p-2 text-xs hover:bg-green-500/10 rounded-lg"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => { onDelete(details.post_id); setIsMenuOpen(false); }}
+                  onClick={() => {
+                    onDelete(details.post_id);
+                    setIsMenuOpen(false);
+                  }}
                   className="w-full text-left p-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg"
                 >
                   Delete
@@ -203,9 +244,17 @@ const PostCard = ({
               rows={3}
             />
             <div className="flex gap-2 justify-end mt-2">
-              <button onClick={() => setIsEditing(false)} className="text-xs text-gray-500 px-3 py-1">Cancel</button>
               <button
-                onClick={() => { onUpdate(details.post_id, editText); setIsEditing(false); }}
+                onClick={() => setIsEditing(false)}
+                className="text-xs text-gray-500 px-3 py-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  onUpdate(details.post_id, editText);
+                  setIsEditing(false);
+                }}
                 className="bg-green-600 px-3 py-1 rounded-lg text-xs font-bold text-black"
               >
                 Save
@@ -219,9 +268,16 @@ const PostCard = ({
 
       {/* Media */}
       {details.media?.length > 0 && (
-        <div className={`px-5 pb-4 grid gap-2 ${details.media.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        <div
+          className={`px-5 pb-4 grid gap-2 ${
+            details.media.length === 1 ? "grid-cols-1" : "grid-cols-2"
+          }`}
+        >
           {details.media.slice(0, 4).map((url: string, i: number) => (
-            <div key={url} className="relative rounded-xl overflow-hidden aspect-video bg-secondary">
+            <div
+              key={url}
+              className="relative rounded-xl overflow-hidden aspect-video bg-secondary"
+            >
               <Image fill src={url} alt="post media" className="object-cover" />
               {i === 3 && details.media.length > 4 && (
                 <div className="absolute inset-0 flex items-center justify-center font-black text-white text-lg bg-black/60">
@@ -259,21 +315,33 @@ const PostCard = ({
         <div className="px-5 pb-5 border-t border-primary-line">
           <div className="flex flex-col gap-3 mt-4 max-h-64 overflow-y-auto pr-1">
             {comments.length === 0 ? (
-              <p className="text-xs text-center py-3 opacity-50">No comments yet. Be the first!</p>
+              <p className="text-xs text-center py-3 opacity-50">
+                No comments yet. Be the first!
+              </p>
             ) : (
               comments.map((c) => (
                 <div key={c.comment_id} className="flex gap-2">
                   <div className="w-7 h-7 rounded-full bg-primary-line flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
                     {c.user_profile?.avatar_pic ? (
-                      <Image width={28} height={28} alt="avatar" src={c.user_profile.avatar_pic} className="w-full h-full object-cover rounded-full" />
+                      <Image
+                        width={28}
+                        height={28}
+                        alt="avatar"
+                        src={c.user_profile.avatar_pic}
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     ) : (
                       c.user_profile?.full_name?.[0] || "A"
                     )}
                   </div>
                   <div className="flex-1 bg-secondary rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-xs font-bold">{c.user_profile?.full_name || c.user_profile?.username}</p>
-                      <p className="text-[10px] opacity-40">{formatPostDate(c.created_at)}</p>
+                      <p className="text-xs font-bold">
+                        {c.user_profile?.full_name || c.user_profile?.username}
+                      </p>
+                      <p className="text-[10px] opacity-40">
+                        {formatPostDate(c.created_at)}
+                      </p>
                     </div>
                     <p className="text-xs">{c.content}</p>
                   </div>
@@ -287,7 +355,9 @@ const PostCard = ({
               type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleComment(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleComment();
+              }}
               placeholder="Write a comment..."
               maxLength={500}
               className="flex-1 px-3 py-2 rounded-lg text-sm bg-secondary border border-primary-line outline-none"
@@ -298,8 +368,15 @@ const PostCard = ({
               className="w-9 h-9 rounded-lg flex items-center justify-center transition-all disabled:opacity-40"
               style={
                 commentText.trim()
-                  ? { background: "linear-gradient(135deg,#16a34a,#22c55e)", color: "#000" }
-                  : { background: "transparent", border: "1px solid var(--primary-line)", color: "gray" }
+                  ? {
+                      background: "linear-gradient(135deg,#16a34a,#22c55e)",
+                      color: "#000",
+                    }
+                  : {
+                      background: "transparent",
+                      border: "1px solid var(--primary-line)",
+                      color: "gray",
+                    }
               }
             >
               <IoSend size={14} />
@@ -311,7 +388,7 @@ const PostCard = ({
   );
 };
 
-// ── Main Page ─────────────────────────────────────────────────
+
 const PostPage = () => {
   const { userDetails, loading: userLoading } = useUserData();
   const params = useParams();
@@ -322,14 +399,14 @@ const PostPage = () => {
   const [authorProfile, setAuthorProfile] = useState<any>(null);
   const [postsLoading, setPostsLoading] = useState(true);
 
-  // ✅ isMyAccount based on URL param vs logged-in user
+
+
   const isMyAccount =
     !!userDetails?.username &&
-    userDetails.username.replace(/^@/, "") === profileId;
+      userDetails.username.replace(/^@/, "") === profileId;
+      useEffect(() => {
+        if (!profileId) return;
 
-  // ✅ Fetch profile + posts for the [id] in the URL — not the logged-in user
-  useEffect(() => {
-    if (!profileId) return;
 
     const fetchProfileAndPosts = async () => {
       setPostsLoading(true);
@@ -374,8 +451,12 @@ const PostPage = () => {
         setPosts((prev) => prev.filter((p) => p.post_id !== postId));
         notify("Post deleted", "success");
       }
-    } catch { notify("Error deleting post", "error"); }
+    } catch {
+      notify("Error deleting post", "error");
+    }
   };
+
+
 
   const handleUpdatePost = async (postId: string, content: string) => {
     try {
@@ -385,10 +466,14 @@ const PostPage = () => {
         body: JSON.stringify({ postId, content }),
       });
       if (res.ok) {
-        setPosts((prev) => prev.map((p) => p.post_id === postId ? { ...p, content } : p));
+        setPosts((prev) =>
+          prev.map((p) => (p.post_id === postId ? { ...p, content } : p))
+        );
         notify("Post updated", "success");
       }
-    } catch { notify("Error updating post", "error"); }
+    } catch {
+      notify("Error updating post", "error");
+    }
   };
 
   return (
@@ -396,12 +481,20 @@ const PostPage = () => {
       <div className="flex flex-col justify-center py-10">
         <div className="flex justify-between items-center w-full max-w-[800px] mb-6 mx-auto text-lg font-semibold">
           <div>
-            {isMyAccount ? "My Posts" : `${authorProfile?.full_name || profileId}'s Posts`}
-            <span className="ml-2 text-sm font-normal opacity-50">({posts.length})</span>
+            {isMyAccount
+              ? "My Posts"
+              : `${authorProfile?.full_name || profileId}'s Posts`}
+            <span className="ml-2 text-sm font-normal opacity-50">
+              ({posts.length})
+            </span>
           </div>
         </div>
 
-        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className="w-[90vw] max-w-[30em]">
+        <Modal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          className="w-[90vw] max-w-[30em]"
+        >
           <CreatePost onClose={() => setIsOpen(false)} setPosts={setPosts} />
         </Modal>
 
@@ -424,7 +517,11 @@ const PostPage = () => {
           {/* Posts */}
           {posts.length === 0 ? (
             <div className="text-center py-16 opacity-50">
-              <p className="font-bold">{isMyAccount ? "You haven't posted anything yet." : "No posts yet."}</p>
+              <p className="font-bold">
+                {isMyAccount
+                  ? "You haven't posted anything yet."
+                  : "No posts yet."}
+              </p>
             </div>
           ) : (
             <div className="flex flex-col w-full">
